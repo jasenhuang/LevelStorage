@@ -198,7 +198,7 @@ static NSMutableDictionary* _instances;
 #pragma mark - serilization
 - (LevelDBEncoderBlock)encoder {
     if (!_encoder){
-        _encoder = ^ NSData *(LevelDBKey *key, id object) {
+        _encoder = ^NSData *(LevelDBKey *key, id object) {
             return [NSKeyedArchiver archivedDataWithRootObject:object];
         };
     }
@@ -207,7 +207,7 @@ static NSMutableDictionary* _instances;
 
 - (LevelDBDecoderBlock)decoder {
     if (!_decoder) {
-        _decoder = ^ id (LevelDBKey *key, NSData *data) {
+        _decoder = ^id (LevelDBKey *key, NSData *data) {
             return [NSKeyedUnarchiver unarchiveObjectWithData:data];
         };
     }
