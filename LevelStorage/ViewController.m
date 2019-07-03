@@ -7,6 +7,8 @@
 //
 
 #import "ViewController.h"
+#import "LevelStorage.h"
+#import "WRBook.h"
 
 @interface ViewController ()
 

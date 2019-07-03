@@ -7,10 +7,27 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "LevelMacro.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface LevelObject : NSObject
+extern NSString* const kOperatorBy;
+extern NSString* const kOperatorLT;
+extern NSString* const kOperatorLTE;
+extern NSString* const kOperatorGT;
+extern NSString* const kOperatorGTE;
+extern NSString* const kOperatorNE;
+extern NSString* const kOperatorAND;
+extern NSString* const kOperatorOR;
+extern NSString* const kOperatorLIMIT;
+
+@protocol LevelProtocol <NSObject>
+@required
+- (NSString*)primay;
+
+@end
+
+@interface LevelObject : NSObject<LevelProtocol>
 
 @end
 

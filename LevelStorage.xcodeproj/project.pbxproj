@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		555399CC22CC510D00C97FF4 /* WRBook.m in Sources */ = {isa = PBXBuildFile; fileRef = 555399CB22CC510D00C97FF4 /* WRBook.m */; };
 		559B66C42254648A00B2EE1A /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 559B66C32254648A00B2EE1A /* AppDelegate.m */; };
 		559B66C72254648A00B2EE1A /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 559B66C62254648A00B2EE1A /* ViewController.m */; };
 		559B66CA2254648A00B2EE1A /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 559B66C82254648A00B2EE1A /* Main.storyboard */; };
@@ -46,6 +47,9 @@
 
 /* Begin PBXFileReference section */
 		33077D3BF056B5E192488BED /* libPods-LevelStorage.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-LevelStorage.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		555399CA22CC510D00C97FF4 /* WRBook.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WRBook.h; sourceTree = "<group>"; };
+		555399CB22CC510D00C97FF4 /* WRBook.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = WRBook.m; sourceTree = "<group>"; };
+		555399CE22CC5D1800C97FF4 /* LevelMacro.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LevelMacro.h; sourceTree = "<group>"; };
 		559B66BF2254648A00B2EE1A /* LevelStorage.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LevelStorage.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		559B66C22254648A00B2EE1A /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		559B66C32254648A00B2EE1A /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -155,6 +159,8 @@
 				559B66C32254648A00B2EE1A /* AppDelegate.m */,
 				559B66C52254648A00B2EE1A /* ViewController.h */,
 				559B66C62254648A00B2EE1A /* ViewController.m */,
+				555399CA22CC510D00C97FF4 /* WRBook.h */,
+				555399CB22CC510D00C97FF4 /* WRBook.m */,
 				559B66C82254648A00B2EE1A /* Main.storyboard */,
 				559B66CB2254648B00B2EE1A /* Assets.xcassets */,
 				559B66CD2254648B00B2EE1A /* LaunchScreen.storyboard */,
@@ -187,14 +193,15 @@
 			children = (
 				559B66F52254652900B2EE1A /* LevelKV+JSON.h */,
 				559B66FD2254652900B2EE1A /* LevelKV+JSON.m */,
-				559B66FE2254652900B2EE1A /* LevelStorage.h */,
-				559B66F72254652900B2EE1A /* LevelStorage.m */,
 				559B66F92254652900B2EE1A /* LevelKV.h */,
 				559B66F82254652900B2EE1A /* LevelKV.mm */,
 				559B66FC2254652900B2EE1A /* LevelDB.h */,
 				559B66FA2254652900B2EE1A /* LevelDB.mm */,
+				555399CE22CC5D1800C97FF4 /* LevelMacro.h */,
 				559B66FB2254652900B2EE1A /* LevelObject.h */,
 				559B66F62254652900B2EE1A /* LevelObject.m */,
+				559B66FE2254652900B2EE1A /* LevelStorage.h */,
+				559B66F72254652900B2EE1A /* LevelStorage.m */,
 			);
 			path = LevelStorage;
 			sourceTree = "<group>";
@@ -387,6 +394,7 @@
 				559B67022254652900B2EE1A /* LevelDB.mm in Sources */,
 				559B6727225474AB00B2EE1A /* PBUtility.mm in Sources */,
 				559B66C72254648A00B2EE1A /* ViewController.m in Sources */,
+				555399CC22CC510D00C97FF4 /* WRBook.m in Sources */,
 				559B66D22254648B00B2EE1A /* main.m in Sources */,
 				559B6726225474AB00B2EE1A /* CodedOutputData.mm in Sources */,
 				559B67002254652900B2EE1A /* LevelStorage.m in Sources */,

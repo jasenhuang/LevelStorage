@@ -35,4 +35,12 @@
 }
 
 
+- (void)save:(LevelObject*)obj {
+
+}
+
+- (NSArray<LevelObject*>*)find:(NSDictionary*)query {
+    return @[];
+}
+
 @end
