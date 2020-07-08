@@ -10,18 +10,36 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+#if defined(__cplusplus)
+#define LDB_EXTERN extern "C" __attribute__((visibility("default")))
+#define LDB_EXTERN_C_BEGIN extern "C" {
+#define LDB_EXTERN_C_END }
+#else
+#define LDB_EXTERN extern __attribute__((visibility("default")))
+#define LDB_EXTERN_C_BEGIN
+#define LDB_EXTERN_C_END
+#endif
+
 @class LevelDB;
+@class LevelKV;
+
+typedef void (^LevelDBErrorFunction)(NSString* name, LevelKV* kv, NSError* error);
+
+LDB_EXTERN void LevelDBSetErrorFunction(LevelDBErrorFunction errorFunction);
 
 @protocol LevelCoding
+
 @required
-- (NSData*)serialize;
-- (void)deserialize:(NSData*)data;
+- (NSData *)serialize;
+- (void)deserialize:(NSData *)data;
+
 @end
 
 @interface LevelKV : NSObject
-@property(nonatomic, readonly) LevelDB* db;
-@property(nonatomic, readonly) NSString* name;
-@property(nonatomic, readonly) NSCache* cache;
+
+@property(nonatomic, readonly) LevelDB *db;
+@property(nonatomic, readonly) NSString *name;
+@property(nonatomic, readonly) NSCache *cache;
 
 + (NSString*)pathWithNameSpace:(nonnull NSString *)ns;
 
@@ -36,6 +54,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)close;
 
 #pragma mark - Setters
+
 /**
  non-threadsafe set kv api
  */
@@ -61,6 +80,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)setData:(NSData*)value forKey:(NSString*)key;
 
 #pragma mark - Getters
+
 /**
  non-threadsafe get kv api
  */
@@ -96,6 +116,21 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)removeObjectForKey:(NSString*)key;
 - (void)removeObjectsForKeys:(NSArray*)keys;
+
+#pragma mark - Checker
+
+- (BOOL)existsValueForKey:(NSString *)key;
+
+#pragma mark - Enumerator
+
+- (void)enumerateKeysUsingBlock:(void (NS_NOESCAPE ^)(NSString *key, BOOL *stop))block;
+
+#pragma mark - Export
+
+// key 支持通配符 *
+- (NSDictionary *)exportToDictionaryWithKyes:(NSArray <NSString *>*)keys;
+
+- (void)importFromDictionary:(NSDictionary *)dict;
 
 @end
 

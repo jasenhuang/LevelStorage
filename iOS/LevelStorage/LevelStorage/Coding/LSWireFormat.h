@@ -1,13 +1,12 @@
 //
-//  WireFormat.h
-//  PBCoder
+//  LSWireFormat.h
+//  LSCoder
 //
-//  Created by Guo Ling on 4/26/13.
 //  Copyright (c) 2013 Tencent. All rights reserved.
 //
 
 
-#import "PBUtility.h"
+#import "LSUtility.h"
 
 typedef enum {
   PBWireFormatVarint = 0,

@@ -12,10 +12,10 @@
 #import <leveldb/cache.h>
 #import <leveldb/filter_policy.h>
 #import <leveldb/write_batch.h>
-#import "PBCoder.h"
-#import "PBUtility.h"
-#import "CodedInputData.h"
-#import "CodedOutputData.h"
+#import "LSCoder.h"
+#import "LSUtility.h"
+#import "LSCodedInputData.h"
+#import "LSCodedOutputData.h"
 
 NSString * const kLevelDBChangeType         = @"changeType";
 NSString * const kLevelDBChangeTypePut      = @"put";
@@ -198,7 +198,7 @@ static NSMutableDictionary* _instances;
 #pragma mark - serilization
 - (LevelDBEncoderBlock)encoder {
     if (!_encoder){
-        _encoder = ^NSData *(LevelDBKey *key, id object) {
+        _encoder = ^ NSData *(LevelDBKey *key, id object) {
             return [NSKeyedArchiver archivedDataWithRootObject:object];
         };
     }
@@ -207,7 +207,7 @@ static NSMutableDictionary* _instances;
 
 - (LevelDBDecoderBlock)decoder {
     if (!_decoder) {
-        _decoder = ^id (LevelDBKey *key, NSData *data) {
+        _decoder = ^ id (LevelDBKey *key, NSData *data) {
             return [NSKeyedUnarchiver unarchiveObjectWithData:data];
         };
     }
@@ -302,6 +302,18 @@ static NSMutableDictionary* _instances;
     [keyArray enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
         [self removeObjectForKey:obj];
     }];
+}
+
+- (void)enumerateKeysUsingBlock:(void (NS_NOESCAPE ^)(NSString *key, BOOL *stop))block {
+    if (!block) return;
+    leveldb::Iterator* it = _db->NewIterator(_readOptions);
+    BOOL stop = NO;
+    for (it->SeekToFirst(); it->Valid() && !stop; it->Next()) {
+        NSString *key = [NSString stringWithUTF8String:it->key().ToString().c_str()];
+        block(key, &stop);
+    }
+    assert(it->status().ok());
+    delete it;
 }
 
 @end

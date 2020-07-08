@@ -1,6 +1,6 @@
 //
-//  CodedOutputData.h
-//  PBCoder
+//  LSCodedOutputData.h
+//  LSCoder
 //
 //  Created by Ling Guo on 4/17/14.
 //  Copyright (c 2014 Tencent. All rights reserved.
@@ -9,7 +9,7 @@
 
 #pragma once
 
-class CodedOutputData {
+class LSCodedOutputData {
 	uint8_t* bufferPointer;
 	size_t bufferLength;
     int32_t position;
@@ -17,9 +17,9 @@ class CodedOutputData {
 	void checkNoSpaceLeft();
 	
 public:
-	CodedOutputData(void* ptr, size_t len);
-	CodedOutputData(NSMutableData* odata);
-	~CodedOutputData();
+	LSCodedOutputData(void* ptr, size_t len);
+	LSCodedOutputData(NSMutableData* odata);
+	~LSCodedOutputData();
 	
 	int32_t spaceLeft();
 	void seek(size_t addedSize);

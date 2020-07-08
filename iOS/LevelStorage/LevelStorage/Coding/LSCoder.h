@@ -1,17 +1,16 @@
 //
-//  PBCoder.h
-//  PBCoder
+//  LSCoder.h
+//  LSCoder
 //
-//  Created by Guo Ling on 4/14/13.
 //  Copyright (c) 2013 Guo Ling. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
 #import <map>
 #import <objc/runtime.h>
-#import "PBCoderTypeTrait.h"
+#import "LSCoderTypeTrait.h"
 
-@protocol PBCoding <NSObject>
+@protocol LSCoding <NSObject>
 
 -(NSArray*) getValueTypeTable;
 -(const std::map<size_t, size_t>*) getValueTagIndexMap;
@@ -19,7 +18,7 @@
 @end
 
 
-@interface PBCoder : NSObject
+@interface LSCoder : NSObject
 
 +(bool) encodeObject:(id)obj toFile:(NSString*)nsPath;
 +(NSData*) encodeDataWithObject:(id)obj;
@@ -56,13 +55,13 @@
 @end
 
 
-@interface PBCoderPropertyType : NSObject
+@interface LSCoderPropertyType : NSObject
 
 @property (nonatomic, assign) uint32_t m_index;
-@property (nonatomic, readonly) PBCoderPropertyCType m_cType;
+@property (nonatomic, readonly) LSCoderPropertyCType m_cType;
 @property (nonatomic, readonly) Class m_cls;
 @property (nonatomic, readonly) Class m_subCls;
-@property (nonatomic, readonly) PBCoderPropertyCType m_subCType;
+@property (nonatomic, readonly) LSCoderPropertyCType m_subCType;
 @property (nonatomic, readonly) SEL m_getter;
 @property (nonatomic, readonly) SEL m_setter;
 @property (nonatomic, strong) id m_blockGet;
@@ -72,10 +71,10 @@
 
 -(id) initWithClass:(Class) cls subClass:(Class) subCls index:(uint32_t) index getter:( SEL) getter setter:( SEL) setter blockGet:(id)blockGet blockSet:(id)blockSet;
 -(id) initWithClass:(Class) cls subClass:(Class) subCls unpacked:(BOOL)unpacked index:(uint32_t) index getter:( SEL) getter setter:( SEL) setter blockGet:(id)blockGet blockSet:(id)blockSet;
--(id) initWithClass:(Class) cls subCType:(PBCoderPropertyCType) subCType index:(uint32_t) index getter:( SEL) getter setter:( SEL) setter blockGet:(id)blockGet blockSet:(id)blockSet;
--(id) initWithClass:(Class) cls subCType:(PBCoderPropertyCType) subCType unpacked:(BOOL)unpacked index:(uint32_t) index getter:( SEL) getter setter:( SEL) setter blockGet:(id)blockGet blockSet:(id)blockSet;
+-(id) initWithClass:(Class) cls subCType:(LSCoderPropertyCType) subCType index:(uint32_t) index getter:( SEL) getter setter:( SEL) setter blockGet:(id)blockGet blockSet:(id)blockSet;
+-(id) initWithClass:(Class) cls subCType:(LSCoderPropertyCType) subCType unpacked:(BOOL)unpacked index:(uint32_t) index getter:( SEL) getter setter:( SEL) setter blockGet:(id)blockGet blockSet:(id)blockSet;
 
--(id) initWithCType:(PBCoderPropertyCType)cType index:(uint32_t)index getter:(SEL)getter setter:(SEL)setter blockGet:(id)blockGet blockSet:(id)blockSet;
+-(id) initWithCType:(LSCoderPropertyCType)cType index:(uint32_t)index getter:(SEL)getter setter:(SEL)setter blockGet:(id)blockGet blockSet:(id)blockSet;
 
 @end
 
@@ -85,9 +84,9 @@ SEL genSetterSelector(NSString* property);
 // helper to add object in global code, C/C++/ObjC forbid writing code in global space, sucks
 struct PBArrayAddHelper
 {
-	PBCoderPropertyType* m_obj;
+	LSCoderPropertyType* m_obj;
 	
-	PBArrayAddHelper(NSMutableArray* arr, PBCoderPropertyType* obj);
+	PBArrayAddHelper(NSMutableArray* arr, LSCoderPropertyType* obj);
 	~PBArrayAddHelper();
 };
 
@@ -142,51 +141,51 @@ void _pbcoder_initPBTable(Class cls, NSMutableArray* arrWrap, std::map<size_t, s
 	typedef typeof(((PBStruct*) NULL).name) __typeOf##name; \
 	PBArrayAddHelper _g_pbArrayAddHelper_##PBStruct##name = std::is_fundamental<__typeOf##name>::value ? \
 		PBArrayAddHelper(g_s_arrayWrapOf##PBStruct, \
-			[[PBCoderPropertyType alloc] initWithCType:PBCoderTypeTrait<__typeOf##name>::cType index:uIndex getter:nil setter:nil blockGet:^__typeOf##name(PBStruct* obj){ return obj.name; } blockSet:^(PBStruct* obj, __typeOf##name value){ obj.name = value; } ]) \
+			[[LSCoderPropertyType alloc] initWithCType:LSCoderTypeTrait<__typeOf##name>::cType index:uIndex getter:nil setter:nil blockGet:^__typeOf##name(PBStruct* obj){ return obj.name; } blockSet:^(PBStruct* obj, __typeOf##name value){ obj.name = value; } ]) \
 	: \
 		PBArrayAddHelper(g_s_arrayWrapOf##PBStruct, \
-			[[PBCoderPropertyType alloc] initWithClass:__PBCoderGetClass<std::is_fundamental<__typeOf##name>::value, __typeOf##name>()() subClass:NULL index:uIndex getter:NSSelectorFromString(@""#name) setter:genSetterSelector(@""#name) blockGet:nil blockSet:nil ]);
+			[[LSCoderPropertyType alloc] initWithClass:__PBCoderGetClass<std::is_fundamental<__typeOf##name>::value, __typeOf##name>()() subClass:NULL index:uIndex getter:NSSelectorFromString(@""#name) setter:genSetterSelector(@""#name) blockGet:nil blockSet:nil ]);
 
 // 注意：Dictionary 的 key 必须是 NSString 类型
 #define PBCODER_CONTAINER_PROPERTY(PBStruct, name, type, valueType, uIndex) \
 	@synthesize name; \
 	PBArrayAddHelper _g_pbArrayAddHelper_##PBStruct##name = PBArrayAddHelper(g_s_arrayWrapOf##PBStruct, \
-		[[PBCoderPropertyType alloc] initWithClass:[type class] subClass:[valueType class] index:uIndex getter:NSSelectorFromString(@""#name) setter:genSetterSelector(@""#name) blockGet:nil blockSet:nil ]);
+		[[LSCoderPropertyType alloc] initWithClass:[type class] subClass:[valueType class] index:uIndex getter:NSSelectorFromString(@""#name) setter:genSetterSelector(@""#name) blockGet:nil blockSet:nil ]);
 
 #define PBCODER_CONTAINER_C_PROPERTY(PBStruct, name, type, cValueType, uIndex) \
 	@synthesize name; \
 	PBArrayAddHelper _g_pbArrayAddHelper_##PBStruct##name = PBArrayAddHelper(g_s_arrayWrapOf##PBStruct, \
-		[[PBCoderPropertyType alloc] initWithClass:[type class] subCType:cValueType index:uIndex getter:NSSelectorFromString(@""#name) setter:genSetterSelector(@""#name) blockGet:nil blockSet:nil ]);
+		[[LSCoderPropertyType alloc] initWithClass:[type class] subCType:cValueType index:uIndex getter:NSSelectorFromString(@""#name) setter:genSetterSelector(@""#name) blockGet:nil blockSet:nil ]);
 
 #define PBCODER_UNPACKED_CONTAINER_PROPERTY(PBStruct, name, type, valueType, uIndex) \
 	@synthesize name; \
 	PBArrayAddHelper _g_pbArrayAddHelper_##PBStruct##name = PBArrayAddHelper(g_s_arrayWrapOf##PBStruct, \
-		[[PBCoderPropertyType alloc] initWithClass:[type class] subClass:[valueType class] unpacked:YES index:uIndex getter:NSSelectorFromString(@""#name) setter:genSetterSelector(@""#name) blockGet:nil blockSet:nil ]);
+		[[LSCoderPropertyType alloc] initWithClass:[type class] subClass:[valueType class] unpacked:YES index:uIndex getter:NSSelectorFromString(@""#name) setter:genSetterSelector(@""#name) blockGet:nil blockSet:nil ]);
 
 #define PBCODER_UNPACKED_CONTAINER_C_PROPERTY(PBStruct, name, type, cValueType, uIndex) \
 	@synthesize name; \
 	PBArrayAddHelper _g_pbArrayAddHelper_##PBStruct##name = PBArrayAddHelper(g_s_arrayWrapOf##PBStruct, \
-		[[PBCoderPropertyType alloc] initWithClass:[type class] subCType:cValueType unpacked:YES index:uIndex getter:NSSelectorFromString(@""#name) setter:genSetterSelector(@""#name) blockGet:nil blockSet:nil ]);
+		[[LSCoderPropertyType alloc] initWithClass:[type class] subCType:cValueType unpacked:YES index:uIndex getter:NSSelectorFromString(@""#name) setter:genSetterSelector(@""#name) blockGet:nil blockSet:nil ]);
 
 #define PBCODER_FIXED32_PROPERTY(PBStruct, name, uIndex) \
 	@synthesize name; \
 	PBArrayAddHelper _g_pbArrayAddHelper_##PBStruct##name = PBArrayAddHelper(g_s_arrayWrapOf##PBStruct, \
-		[[PBCoderPropertyType alloc] initWithCType:PBCoderCType_Fixed32 index:uIndex getter:nil setter:nil blockGet:^uint32_t(PBStruct* obj){ return obj.name; } blockSet:^(PBStruct* obj, uint32_t value){ obj.name = value; } ]);
+		[[LSCoderPropertyType alloc] initWithCType:LSCoderCType_Fixed32 index:uIndex getter:nil setter:nil blockGet:^uint32_t(PBStruct* obj){ return obj.name; } blockSet:^(PBStruct* obj, uint32_t value){ obj.name = value; } ]);
 
 #define PBCODER_FIXED64_PROPERTY(PBStruct, name, uIndex) \
 	@synthesize name; \
 	PBArrayAddHelper _g_pbArrayAddHelper_##PBStruct##name = PBArrayAddHelper(g_s_arrayWrapOf##PBStruct, \
-		[[PBCoderPropertyType alloc] initWithCType:PBCoderCType_Fixed64 index:uIndex getter:nil setter:nil blockGet:^uint64_t(PBStruct* obj){ return obj.name; } blockSet:^(PBStruct* obj, uint64_t value){ obj.name = value; } ]);
+		[[LSCoderPropertyType alloc] initWithCType:LSCoderCType_Fixed64 index:uIndex getter:nil setter:nil blockGet:^uint64_t(PBStruct* obj){ return obj.name; } blockSet:^(PBStruct* obj, uint64_t value){ obj.name = value; } ]);
 
 #define PBCODER_SFIXED32_PROPERTY(PBStruct, name, uIndex) \
 	@synthesize name; \
 	PBArrayAddHelper _g_pbArrayAddHelper_##PBStruct##name = PBArrayAddHelper(g_s_arrayWrapOf##PBStruct, \
-		[[PBCoderPropertyType alloc] initWithCType:PBCoderCType_SFixed32 index:uIndex getter:nil setter:nil blockGet:^int32_t(PBStruct* obj){ return obj.name; } blockSet:^(PBStruct* obj, int32_t value){ obj.name = value; } ]);
+		[[LSCoderPropertyType alloc] initWithCType:LSCoderCType_SFixed32 index:uIndex getter:nil setter:nil blockGet:^int32_t(PBStruct* obj){ return obj.name; } blockSet:^(PBStruct* obj, int32_t value){ obj.name = value; } ]);
 
 #define PBCODER_SFIXED64_PROPERTY(PBStruct, name, uIndex) \
 	@synthesize name; \
 	PBArrayAddHelper _g_pbArrayAddHelper_##PBStruct##name = PBArrayAddHelper(g_s_arrayWrapOf##PBStruct, \
-		[[PBCoderPropertyType alloc] initWithCType:PBCoderCType_SFixed64 index:uIndex getter:nil setter:nil blockGet:^int64_t(PBStruct* obj){ return obj.name; } blockSet:^(PBStruct* obj, int64_t value){ obj.name = value; } ]);
+		[[LSCoderPropertyType alloc] initWithCType:LSCoderCType_SFixed64 index:uIndex getter:nil setter:nil blockGet:^int64_t(PBStruct* obj){ return obj.name; } blockSet:^(PBStruct* obj, int64_t value){ obj.name = value; } ]);
 
 
 // deprecated
@@ -194,68 +193,68 @@ void _pbcoder_initPBTable(Class cls, NSMutableArray* arrWrap, std::map<size_t, s
 #define PBCODER_OBJ_PROPERTY(PBStruct, name, type, uIndex) \
 	@synthesize name; \
 	PBArrayAddHelper _g_pbArrayAddHelper_##PBStruct##name = PBArrayAddHelper(g_s_arrayWrapOf##PBStruct, \
-		[[PBCoderPropertyType alloc] initWithClass:[type class] subClass:NULL index:uIndex getter:NSSelectorFromString(@""#name) setter:genSetterSelector(@""#name) blockGet:nil blockSet:nil ]);
+		[[LSCoderPropertyType alloc] initWithClass:[type class] subClass:NULL index:uIndex getter:NSSelectorFromString(@""#name) setter:genSetterSelector(@""#name) blockGet:nil blockSet:nil ]);
 
 #define PBCODER_BOOL_PROPERTY(PBStruct, name, uIndex) \
 	@synthesize name; \
 	PBArrayAddHelper _g_pbArrayAddHelper_##PBStruct##name = PBArrayAddHelper(g_s_arrayWrapOf##PBStruct, \
-		[[PBCoderPropertyType alloc] initWithCType:PBCoderCType_Bool index:uIndex getter:nil setter:nil blockGet:^bool(PBStruct* obj){ return obj.name; } blockSet:^(PBStruct* obj, bool value){ obj.name = value; } ]);
+		[[LSCoderPropertyType alloc] initWithCType:LSCoderCType_Bool index:uIndex getter:nil setter:nil blockGet:^bool(PBStruct* obj){ return obj.name; } blockSet:^(PBStruct* obj, bool value){ obj.name = value; } ]);
 
 #define PBCODER_ENUM_PROPERTY(PBStruct, name, uIndex) \
 	@synthesize name; \
 	PBArrayAddHelper _g_pbArrayAddHelper_##PBStruct##name = PBArrayAddHelper(g_s_arrayWrapOf##PBStruct, \
-		[[PBCoderPropertyType alloc] initWithCType:PBCoderCType_Enum index:uIndex getter:nil setter:nil blockGet:^int32_t(PBStruct* obj){ return obj.name; } blockSet:^(PBStruct* obj, int32_t value){ obj.name = (typeof(obj.name))value; } ]);
+		[[LSCoderPropertyType alloc] initWithCType:LSCoderCType_Enum index:uIndex getter:nil setter:nil blockGet:^int32_t(PBStruct* obj){ return obj.name; } blockSet:^(PBStruct* obj, int32_t value){ obj.name = (typeof(obj.name))value; } ]);
 
 #define PBCODER_INT32_PROPERTY(PBStruct, name, uIndex) \
 	@synthesize name; \
 	PBArrayAddHelper _g_pbArrayAddHelper_##PBStruct##name = PBArrayAddHelper(g_s_arrayWrapOf##PBStruct, \
-		[[PBCoderPropertyType alloc] initWithCType:PBCoderCType_Int32 index:uIndex getter:nil setter:nil blockGet:^int32_t(PBStruct* obj){ return obj.name; } blockSet:^(PBStruct* obj, int32_t value){ obj.name = value; } ]);
+		[[LSCoderPropertyType alloc] initWithCType:LSCoderCType_Int32 index:uIndex getter:nil setter:nil blockGet:^int32_t(PBStruct* obj){ return obj.name; } blockSet:^(PBStruct* obj, int32_t value){ obj.name = value; } ]);
 
 #define PBCODER_INT64_PROPERTY(PBStruct, name, uIndex) \
 	@synthesize name; \
 	PBArrayAddHelper _g_pbArrayAddHelper_##PBStruct##name = PBArrayAddHelper(g_s_arrayWrapOf##PBStruct, \
-		[[PBCoderPropertyType alloc] initWithCType:PBCoderCType_Int64 index:uIndex getter:nil setter:nil blockGet:^int64_t(PBStruct* obj){ return obj.name; } blockSet:^(PBStruct* obj, int64_t value){ obj.name = value; } ]);
+		[[LSCoderPropertyType alloc] initWithCType:LSCoderCType_Int64 index:uIndex getter:nil setter:nil blockGet:^int64_t(PBStruct* obj){ return obj.name; } blockSet:^(PBStruct* obj, int64_t value){ obj.name = value; } ]);
 
 #define PBCODER_UINT32_PROPERTY(PBStruct, name, uIndex) \
 	@synthesize name; \
 	PBArrayAddHelper _g_pbArrayAddHelper_##PBStruct##name = PBArrayAddHelper(g_s_arrayWrapOf##PBStruct, \
-		[[PBCoderPropertyType alloc] initWithCType:PBCoderCType_UInt32 index:uIndex getter:nil setter:nil blockGet:^uint32_t(PBStruct* obj){ return obj.name; } blockSet:^(PBStruct* obj, uint32_t value){ obj.name = value; } ]);
+		[[LSCoderPropertyType alloc] initWithCType:LSCoderCType_UInt32 index:uIndex getter:nil setter:nil blockGet:^uint32_t(PBStruct* obj){ return obj.name; } blockSet:^(PBStruct* obj, uint32_t value){ obj.name = value; } ]);
 
 #define PBCODER_UINT64_PROPERTY(PBStruct, name, uIndex) \
 	@synthesize name; \
 	PBArrayAddHelper _g_pbArrayAddHelper_##PBStruct##name = PBArrayAddHelper(g_s_arrayWrapOf##PBStruct, \
-		[[PBCoderPropertyType alloc] initWithCType:PBCoderCType_UInt64 index:uIndex getter:nil setter:nil blockGet:^uint64_t(PBStruct* obj){ return obj.name; } blockSet:^(PBStruct* obj, uint64_t value){ obj.name = value; } ]);
+		[[LSCoderPropertyType alloc] initWithCType:LSCoderCType_UInt64 index:uIndex getter:nil setter:nil blockGet:^uint64_t(PBStruct* obj){ return obj.name; } blockSet:^(PBStruct* obj, uint64_t value){ obj.name = value; } ]);
 
 #define PBCODER_FLOAT_PROPERTY(PBStruct, name, uIndex) \
 	@synthesize name; \
 	PBArrayAddHelper _g_pbArrayAddHelper_##PBStruct##name = PBArrayAddHelper(g_s_arrayWrapOf##PBStruct, \
-		[[PBCoderPropertyType alloc] initWithCType:PBCoderCType_Float index:uIndex getter:nil setter:nil blockGet:^float(PBStruct* obj){ return obj.name; } blockSet:^(PBStruct* obj, float value){ obj.name = value; } ]);
+		[[LSCoderPropertyType alloc] initWithCType:LSCoderCType_Float index:uIndex getter:nil setter:nil blockGet:^float(PBStruct* obj){ return obj.name; } blockSet:^(PBStruct* obj, float value){ obj.name = value; } ]);
 
 #define PBCODER_DOUBLE_PROPERTY(PBStruct, name, uIndex) \
 	@synthesize name; \
 	PBArrayAddHelper _g_pbArrayAddHelper_##PBStruct##name = PBArrayAddHelper(g_s_arrayWrapOf##PBStruct, \
-		[[PBCoderPropertyType alloc] initWithCType:PBCoderCType_Double index:uIndex getter:nil setter:nil blockGet:^double(PBStruct* obj){ return obj.name; } blockSet:^(PBStruct* obj, double value){ obj.name = value; } ]);
+		[[LSCoderPropertyType alloc] initWithCType:LSCoderCType_Double index:uIndex getter:nil setter:nil blockGet:^double(PBStruct* obj){ return obj.name; } blockSet:^(PBStruct* obj, double value){ obj.name = value; } ]);
 
 #define PBCODER_POINT_PROPERTY(PBStruct, name, uIndex) \
 	@synthesize name; \
 	PBArrayAddHelper _g_pbArrayAddHelper_##PBStruct##name = PBArrayAddHelper(g_s_arrayWrapOf##PBStruct, \
-		[[PBCoderPropertyType alloc] initWithCType:PBCoderCType_Point index:uIndex getter:nil setter:nil blockGet:^CGPoint(PBStruct* obj){ return obj.name; } blockSet:^(PBStruct* obj, CGPoint value){ obj.name = value; } ]);
+		[[LSCoderPropertyType alloc] initWithCType:LSCoderCType_Point index:uIndex getter:nil setter:nil blockGet:^CGPoint(PBStruct* obj){ return obj.name; } blockSet:^(PBStruct* obj, CGPoint value){ obj.name = value; } ]);
 
 #define PBCODER_SIZE_PROPERTY(PBStruct, name, uIndex) \
 	@synthesize name; \
 	PBArrayAddHelper _g_pbArrayAddHelper_##PBStruct##name = PBArrayAddHelper(g_s_arrayWrapOf##PBStruct, \
-		[[PBCoderPropertyType alloc] initWithCType:PBCoderCType_Size index:uIndex getter:nil setter:nil blockGet:^CGSize(PBStruct* obj){ return obj.name; } blockSet:^(PBStruct* obj, CGSize value){ obj.name = value; } ]);
+		[[LSCoderPropertyType alloc] initWithCType:LSCoderCType_Size index:uIndex getter:nil setter:nil blockGet:^CGSize(PBStruct* obj){ return obj.name; } blockSet:^(PBStruct* obj, CGSize value){ obj.name = value; } ]);
 
 #define PBCODER_RECT_PROPERTY(PBStruct, name, uIndex) \
 	@synthesize name; \
 	PBArrayAddHelper _g_pbArrayAddHelper_##PBStruct##name = PBArrayAddHelper(g_s_arrayWrapOf##PBStruct, \
-		[[PBCoderPropertyType alloc] initWithCType:PBCoderCType_Rect index:uIndex getter:nil setter:nil blockGet:^CGRect(PBStruct* obj){ return obj.name; } blockSet:^(PBStruct* obj, CGRect value){ obj.name = value; } ]);
+		[[LSCoderPropertyType alloc] initWithCType:LSCoderCType_Rect index:uIndex getter:nil setter:nil blockGet:^CGRect(PBStruct* obj){ return obj.name; } blockSet:^(PBStruct* obj, CGRect value){ obj.name = value; } ]);
 
 
-//#define PBError(format, ...)	MMErrorWithModule("PBCoder", format, ##__VA_ARGS__)
-//#define PBWarning(format, ...)	MMWarningWithModule("PBCoder", format, ##__VA_ARGS__)
-//#define PBInfo(format, ...)		MMInfoWithModule("PBCoder", format, ##__VA_ARGS__)
-//#define PBDebug(format, ...)	MMDebugWithModule("PBCoder", format, ##__VA_ARGS__)
+//#define PBError(format, ...)	MMErrorWithModule("LSCoder", format, ##__VA_ARGS__)
+//#define PBWarning(format, ...)	MMWarningWithModule("LSCoder", format, ##__VA_ARGS__)
+//#define PBInfo(format, ...)		MMInfoWithModule("LSCoder", format, ##__VA_ARGS__)
+//#define PBDebug(format, ...)	MMDebugWithModule("LSCoder", format, ##__VA_ARGS__)
 #define PBError(format, ...)	NSLog(format, ##__VA_ARGS__)
 #define PBWarning(format, ...)	NSLog(format, ##__VA_ARGS__)
 #define PBInfo(format, ...)		NSLog(format, ##__VA_ARGS__)

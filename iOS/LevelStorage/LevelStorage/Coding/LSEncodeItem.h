@@ -1,47 +1,46 @@
 //
-//  PBEncodeItem.h
-//  PBCoder
+//  LSEncodeItem.h
+//  LSCoder
 //
-//  Created by Guo Ling on 4/19/13.
 //  Copyright (c) 2013 Guo Ling. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
-enum PBEncodeItemType {
-	PBEncodeItemType_None,
-	PBEncodeItemType_Bool,
-	PBEncodeItemType_Enum,
-	PBEncodeItemType_Int32,
-	PBEncodeItemType_Int64,
-	PBEncodeItemType_UInt32,
-	PBEncodeItemType_UInt64,
-	PBEncodeItemType_Float,
-	PBEncodeItemType_Double,
+enum LSEncodeItemType {
+	LSEncodeItemType_None,
+	LSEncodeItemType_Bool,
+	LSEncodeItemType_Enum,
+	LSEncodeItemType_Int32,
+	LSEncodeItemType_Int64,
+	LSEncodeItemType_UInt32,
+	LSEncodeItemType_UInt64,
+	LSEncodeItemType_Float,
+	LSEncodeItemType_Double,
 
-	PBEncodeItemType_Fixed32,
-	PBEncodeItemType_Fixed64,
-	PBEncodeItemType_SFixed32,
-	PBEncodeItemType_SFixed64,
+	LSEncodeItemType_Fixed32,
+	LSEncodeItemType_Fixed64,
+	LSEncodeItemType_SFixed32,
+	LSEncodeItemType_SFixed64,
 
-	PBEncodeItemType_Point,
-	PBEncodeItemType_Size,
-	PBEncodeItemType_Rect,
+	LSEncodeItemType_Point,
+	LSEncodeItemType_Size,
+	LSEncodeItemType_Rect,
 
-	PBEncodeItemType_NSString,
-	PBEncodeItemType_NSData,
-	PBEncodeItemType_NSDate,
-	PBEncodeItemType_NSNumber,
-	PBEncodeItemType_NSContainer,
-	PBEncodeItemType_NSContainer_UNPACKED,
+	LSEncodeItemType_NSString,
+	LSEncodeItemType_NSData,
+	LSEncodeItemType_NSDate,
+	LSEncodeItemType_NSNumber,
+	LSEncodeItemType_NSContainer,
+	LSEncodeItemType_NSContainer_UNPACKED,
 	
-	PBEncodeItemType_Object,
+	LSEncodeItemType_Object,
 };
 
-struct PBEncodeItem
+struct LSEncodeItem
 {
-	PBEncodeItemType type;
+	LSEncodeItemType type;
 	bool hasTag;
 	int32_t compiledTag;
 	int32_t compiledSize;
@@ -61,23 +60,23 @@ struct PBEncodeItem
 		void* tmpObjectValue;	// this object should release on dealloc
 	} value;
 	
-	PBEncodeItem()
-		:type(PBEncodeItemType_None), hasTag(false), compiledTag(0), compiledSize(0), valueSize(0)
+	LSEncodeItem()
+		:type(LSEncodeItemType_None), hasTag(false), compiledTag(0), compiledSize(0), valueSize(0)
 	{
 		memset(&value, 0, sizeof(value));
 	}
 	
-	PBEncodeItem(const PBEncodeItem& other)
+	LSEncodeItem(const LSEncodeItem& other)
 		:type(other.type), hasTag(other.hasTag), compiledTag(other.compiledTag), compiledSize(other.compiledSize), valueSize(other.valueSize), value(other.value)
 	{
-		if (type == PBEncodeItemType_NSNumber || type == PBEncodeItemType_NSString) {
+		if (type == LSEncodeItemType_NSNumber || type == LSEncodeItemType_NSString) {
 			if (value.tmpObjectValue != NULL) {
 				CFRetain(value.tmpObjectValue);
 			}
 		}
 	}
 	
-	PBEncodeItem& operator = (const PBEncodeItem& other)
+	LSEncodeItem& operator = (const LSEncodeItem& other)
 	{
 		type = other.type;
 		hasTag = other.hasTag;
@@ -86,7 +85,7 @@ struct PBEncodeItem
 		valueSize = other.valueSize;
 		value = other.value;
 
-		if (type == PBEncodeItemType_NSNumber || type == PBEncodeItemType_NSString) {
+		if (type == LSEncodeItemType_NSNumber || type == LSEncodeItemType_NSString) {
 			if (value.tmpObjectValue != NULL) {
 				CFRetain(value.tmpObjectValue);
 			}
@@ -95,10 +94,10 @@ struct PBEncodeItem
 		return *this;
 	}
 	
-	~PBEncodeItem()
+	~LSEncodeItem()
 	{
 		// release tmpObjectValue, currently only NSNumber/NSString will generate it
-		if (type == PBEncodeItemType_NSNumber || type == PBEncodeItemType_NSString) {
+		if (type == LSEncodeItemType_NSNumber || type == LSEncodeItemType_NSString) {
 			if (value.tmpObjectValue != NULL) {
 				CFRelease(value.tmpObjectValue);
 				value.tmpObjectValue = NULL;

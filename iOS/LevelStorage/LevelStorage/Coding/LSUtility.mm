@@ -1,16 +1,15 @@
 //
-//  PBUtility.mm
-//  PBCoder
+//  LSUtility.mm
+//  LSCoder
 //
-//  Created by Guo Ling on 4/26/13.
 //  Copyright (c) 2013 Tencent. All rights reserved.
 //
 
-#import "PBUtility.h"
-#import "WireFormat.h"
+#import "LSUtility.h"
+#import "LSWireFormat.h"
 
 #if ! __has_feature(objc_arc)
-#error PBCoding must be compiled with ARC. Use -fobjc-arc flag (or convert project to ARC).
+#error LSCoding must be compiled with ARC. Use -fobjc-arc flag (or convert project to ARC).
 #endif
 
 static const int32_t LITTLE_ENDIAN_32_SIZE = 4;

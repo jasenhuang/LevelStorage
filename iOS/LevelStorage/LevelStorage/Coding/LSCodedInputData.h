@@ -1,8 +1,6 @@
 //
-//  CodedInputData.h
-//  MicroMessenger
+//  LSCodedInputData.h
 //
-//  Created by Guo Ling on 4/26/13.
 //  Copyright (c) 2013 Tencent. All rights reserved.
 //
 
@@ -10,7 +8,7 @@
 
 #pragma once
 
-class CodedInputData {
+class LSCodedInputData {
 	uint8_t* bufferPointer;
 	int32_t bufferSize;
 	int32_t bufferSizeAfterLimit;
@@ -28,8 +26,8 @@ class CodedInputData {
 	int32_t sizeLimit;
 
 public:
-	CodedInputData(NSData* oData);
-	~CodedInputData();
+	LSCodedInputData(NSData* oData);
+	~LSCodedInputData();
 	
 	bool isAtEnd() { return bufferPos == bufferSize; };
 	void checkLastTagWas(int32_t value);

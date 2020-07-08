@@ -1,8 +1,7 @@
 //
-//  PBUtility.h
-//  PBCoder
+//  LSUtility.h
+//  LSCoder
 //
-//  Created by Guo Ling on 4/26/13.
 //  Copyright (c) 2013 Tencent. All rights reserved.
 //
 

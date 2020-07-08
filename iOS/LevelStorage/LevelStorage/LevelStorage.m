@@ -12,7 +12,7 @@
 
 @interface LevelStorage()
 {
-    
+    LevelDB* _db;
 }
 @end
 
@@ -30,17 +30,11 @@
 {
     self = [super init];
     if (self) {
+        NSString* ns = [NSString stringWithFormat:@"vid_%@", @([WRLoginManager shareInstance].vid)];
+        _db = [LevelDB databaseWithNameSpace:ns];
     }
     return self;
 }
 
-
-- (void)save:(LevelObject*)obj {
-
-}
-
-- (NSArray<LevelObject*>*)find:(NSDictionary*)query {
-    return @[];
-}
 
 @end

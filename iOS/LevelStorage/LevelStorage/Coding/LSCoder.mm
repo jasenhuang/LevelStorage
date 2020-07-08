@@ -1,20 +1,20 @@
 //
-//  PBCoder.mm
-//  PBCoder
+//  LSCoder.mm
+//  LSCoder
 //
-//  Created by Guo Ling on 4/14/13.
 //  Copyright (c) 2013 Guo Ling. All rights reserved.
 //
+
 #include <sys/stat.h>
 #import <vector>
-#import "WireFormat.h"
-#import "PBEncodeItem.h"
-#import "CodedInputData.h"
-#import "CodedOutputData.h"
-#import "PBCoder+PropertyTable.h"
+#import "LSWireFormat.h"
+#import "LSEncodeItem.h"
+#import "LSCodedInputData.h"
+#import "LSCodedOutputData.h"
+#import "LSCoder+PropertyTable.h"
 
 #if ! __has_feature(objc_arc)
-#error PBCoding must be compiled with ARC. Use -fobjc-arc flag (or convert project to ARC).
+#error LSCoding must be compiled with ARC. Use -fobjc-arc flag (or convert project to ARC).
 #endif
 
 #pragma clang diagnostic push
@@ -68,15 +68,15 @@ void _pbcoder_initPBTable(Class cls, NSMutableArray* arrWrap, std::map<size_t, s
 	int propertyIndexOffset = 0;
 	if (!hasInit) {
 		hasInit = true;
-		if (class_conformsToProtocol(class_getSuperclass(cls), @protocol(PBCoding))) {
-			PBCoderPropertyType* superHolder = [[PBCoderPropertyType alloc] initWithClass:class_getSuperclass(cls) subClass:NULL index:0 getter:NULL setter:NULL blockGet:nil blockSet:nil];
+		if (class_conformsToProtocol(class_getSuperclass(cls), @protocol(LSCoding))) {
+			LSCoderPropertyType* superHolder = [[LSCoderPropertyType alloc] initWithClass:class_getSuperclass(cls) subClass:NULL index:0 getter:NULL setter:NULL blockGet:nil blockSet:nil];
 			superHolder.m_isSuperPlaceHolder = YES;
 			[arrWrap insertObject:superHolder atIndex:0];
 			propertyIndexOffset = 1;
 		}
 	}
 	for (size_t i = 0; i < arrWrap.count; i++) {
-		PBCoderPropertyType* property = [arrWrap objectAtIndex:i];
+		LSCoderPropertyType* property = [arrWrap objectAtIndex:i];
 		property.m_index += propertyIndexOffset;
 		mapTagToIndex.insert(std::make_pair(property.m_index, i));
 	}
@@ -95,11 +95,11 @@ void blockSet(id target, id block, T value) {
 };
 
 
-PBArrayAddHelper::PBArrayAddHelper(NSMutableArray* arr, PBCoderPropertyType* obj)
+PBArrayAddHelper::PBArrayAddHelper(NSMutableArray* arr, LSCoderPropertyType* obj)
 	: m_obj(obj)
 {
 #ifndef NDEBUG
-	if (obj.m_subCls == NULL && obj.m_subCType == PBCoderCType_None &&
+	if (obj.m_subCls == NULL && obj.m_subCType == LSCoderCType_None &&
 		(obj.m_cls == NSSet.class || obj.m_cls == NSMutableSet.class ||
 		 obj.m_cls == NSArray.class || obj.m_cls == NSMutableArray.class ||
 		 obj.m_cls == NSDictionary.class || obj.m_cls == NSMutableDictionary.class))
@@ -126,13 +126,13 @@ PBArrayAddHelper::~PBArrayAddHelper()
 	m_obj = nil;
 }
 
-@implementation PBCoderPropertyType
+@implementation LSCoderPropertyType
 
 -(id)initWithClass:(Class)cls subClass:(Class)subCls index:(uint32_t)index getter:(SEL)getter setter:(SEL)setter blockGet:(id)blockGet blockSet:(id)blockSet {
 	if (self = [super init]) {
 		_m_cls = cls;
 		_m_subCls = subCls;
-		_m_cType = PBCoderCType_None;
+		_m_cType = LSCoderCType_None;
 		_m_index = index;
 		_m_getter = getter;
 		_m_setter = setter;
@@ -148,7 +148,7 @@ PBArrayAddHelper::~PBArrayAddHelper()
 	if (self = [super init]) {
 		_m_cls = cls;
 		_m_subCls = subCls;
-		_m_cType = PBCoderCType_None;
+		_m_cType = LSCoderCType_None;
 		_m_index = index;
 		_m_getter = getter;
 		_m_setter = setter;
@@ -159,12 +159,12 @@ PBArrayAddHelper::~PBArrayAddHelper()
 	}
 	return self;
 }
--(id) initWithClass:(Class) cls subCType:(PBCoderPropertyCType) subCType index:(uint32_t) index getter:( SEL) getter setter:( SEL) setter blockGet:(id)blockGet blockSet:(id)blockSet
+-(id) initWithClass:(Class) cls subCType:(LSCoderPropertyCType) subCType index:(uint32_t) index getter:( SEL) getter setter:( SEL) setter blockGet:(id)blockGet blockSet:(id)blockSet
 {
 	if (self = [super init]) {
 		_m_cls = cls;
 		_m_subCType = subCType;
-		_m_cType = PBCoderCType_None;
+		_m_cType = LSCoderCType_None;
 		_m_index = index;
 		_m_getter = getter;
 		_m_setter = setter;
@@ -176,12 +176,12 @@ PBArrayAddHelper::~PBArrayAddHelper()
 	return self;
 }
 
--(id) initWithClass:(Class) cls subCType:(PBCoderPropertyCType) subCType unpacked:(BOOL)unpacked index:(uint32_t) index getter:( SEL) getter setter:( SEL) setter blockGet:(id)blockGet blockSet:(id)blockSet
+-(id) initWithClass:(Class) cls subCType:(LSCoderPropertyCType) subCType unpacked:(BOOL)unpacked index:(uint32_t) index getter:( SEL) getter setter:( SEL) setter blockGet:(id)blockGet blockSet:(id)blockSet
 {
 	if (self = [super init]) {
 		_m_cls = cls;
 		_m_subCType = subCType;
-		_m_cType = PBCoderCType_None;
+		_m_cType = LSCoderCType_None;
 		_m_index = index;
 		_m_getter = getter;
 		_m_setter = setter;
@@ -193,7 +193,7 @@ PBArrayAddHelper::~PBArrayAddHelper()
 	return self;
 }
 
--(id)initWithCType:(PBCoderPropertyCType)cType index:(uint32_t)index getter:(SEL)getter setter:(SEL)setter blockGet:(id)blockGet blockSet:(id)blockSet {
+-(id)initWithCType:(LSCoderPropertyCType)cType index:(uint32_t)index getter:(SEL)getter setter:(SEL)setter blockGet:(id)blockGet blockSet:(id)blockSet {
 	if (self = [super init]) {
 		_m_cls = NULL;
 		_m_subCls = NULL;
@@ -211,17 +211,17 @@ PBArrayAddHelper::~PBArrayAddHelper()
 
 @end
 
-@implementation PBCoder {
-	id<PBCoding> m_obj;
+@implementation LSCoder {
+	id<LSCoding> m_obj;
 	
 	BOOL m_isTopObject;
 	NSData* m_inputData;
-	CodedInputData* m_inputStream;
+	LSCodedInputData* m_inputStream;
 	NSNumberFormatter* m_numberFormatter;
 	
 	NSMutableData* m_outputData;
-	CodedOutputData* m_outputStream;
-	std::vector<PBEncodeItem>* m_encodeItems;
+	LSCodedOutputData* m_outputStream;
+	std::vector<LSEncodeItem>* m_encodeItems;
 	
 	void* m_formatBuffer;
 	size_t m_formatBufferSize;
@@ -231,12 +231,12 @@ PBArrayAddHelper::~PBArrayAddHelper()
 	if (self = [super init]) {
 		m_isTopObject = YES;
         m_inputData = data;
-		m_inputStream = new CodedInputData(data);
+		m_inputStream = new LSCodedInputData(data);
 	}
 	return self;
 }
 
--(id)initForWritingWithTarget:(id<PBCoding>) obj {
+-(id)initForWritingWithTarget:(id<LSCoding>) obj {
 	if (self = [super init]) {
         m_obj = obj;
 	}
@@ -274,15 +274,15 @@ PBArrayAddHelper::~PBArrayAddHelper()
 // write object using prepared m_encodeItems[]
 -(void) writeRootObject {
 	for (size_t index = 0, total = m_encodeItems->size(); index < total; index++) {
-		PBEncodeItem* encodeItem = &(*m_encodeItems)[index];
+		LSEncodeItem* encodeItem = &(*m_encodeItems)[index];
 		// a root object should not write tag or size
 		// a packed container should not write tag, but size is needed
-		if (index == 0 && encodeItem->hasTag == false && encodeItem->type == PBEncodeItemType_Object) {
+		if (index == 0 && encodeItem->hasTag == false && encodeItem->type == LSEncodeItemType_Object) {
 			continue;
 		}
 		
 		switch (encodeItem->type) {
-			case PBEncodeItemType_Bool:
+			case LSEncodeItemType_Bool:
 			{
 				if (encodeItem->hasTag) {
 					m_outputStream->writeRawVarint32(encodeItem->compiledTag);
@@ -290,7 +290,7 @@ PBArrayAddHelper::~PBArrayAddHelper()
 				m_outputStream->writeBoolNoTag(encodeItem->value.boolValue);
 				break;
 			}
-			case PBEncodeItemType_Enum:
+			case LSEncodeItemType_Enum:
 			{
 				if (encodeItem->hasTag) {
 					m_outputStream->writeRawVarint32(encodeItem->compiledTag);
@@ -298,7 +298,7 @@ PBArrayAddHelper::~PBArrayAddHelper()
 				m_outputStream->writeEnumNoTag(encodeItem->value.int32Value);
 				break;
 			}
-			case PBEncodeItemType_Int32:
+			case LSEncodeItemType_Int32:
 			{
 				if (encodeItem->hasTag) {
 					m_outputStream->writeRawVarint32(encodeItem->compiledTag);
@@ -306,7 +306,7 @@ PBArrayAddHelper::~PBArrayAddHelper()
 				m_outputStream->writeInt32NoTag(encodeItem->value.int32Value);
 				break;
 			}
-			case PBEncodeItemType_Int64:
+			case LSEncodeItemType_Int64:
 			{
 				if (encodeItem->hasTag) {
 					m_outputStream->writeRawVarint32(encodeItem->compiledTag);
@@ -314,7 +314,7 @@ PBArrayAddHelper::~PBArrayAddHelper()
 				m_outputStream->writeInt64NoTag(encodeItem->value.int64Value);
 				break;
 			}
-			case PBEncodeItemType_UInt32:
+			case LSEncodeItemType_UInt32:
 			{
 				if (encodeItem->hasTag) {
 					m_outputStream->writeRawVarint32(encodeItem->compiledTag);
@@ -322,7 +322,7 @@ PBArrayAddHelper::~PBArrayAddHelper()
 				m_outputStream->writeUInt32NoTag(encodeItem->value.uint32Value);
 				break;
 			}
-			case PBEncodeItemType_UInt64:
+			case LSEncodeItemType_UInt64:
 			{
 				if (encodeItem->hasTag) {
 					m_outputStream->writeRawVarint32(encodeItem->compiledTag);
@@ -330,7 +330,7 @@ PBArrayAddHelper::~PBArrayAddHelper()
 				m_outputStream->writeUInt64NoTag(encodeItem->value.uint64Value);
 				break;
 			}
-			case PBEncodeItemType_Float:
+			case LSEncodeItemType_Float:
 			{
 				if (encodeItem->hasTag) {
 					m_outputStream->writeRawVarint32(encodeItem->compiledTag);
@@ -338,7 +338,7 @@ PBArrayAddHelper::~PBArrayAddHelper()
 				m_outputStream->writeFloatNoTag(encodeItem->value.floatValue);
 				break;
 			}
-			case PBEncodeItemType_Double:
+			case LSEncodeItemType_Double:
 			{
 				if (encodeItem->hasTag) {
 					m_outputStream->writeRawVarint32(encodeItem->compiledTag);
@@ -346,7 +346,7 @@ PBArrayAddHelper::~PBArrayAddHelper()
 				m_outputStream->writeDoubleNoTag(encodeItem->value.doubleValue);
 				break;
 			}
-			case PBEncodeItemType_Fixed32:
+			case LSEncodeItemType_Fixed32:
 			{
 				if (encodeItem->hasTag) {
 					m_outputStream->writeRawVarint32(encodeItem->compiledTag);
@@ -354,7 +354,7 @@ PBArrayAddHelper::~PBArrayAddHelper()
 				m_outputStream->writeFixed32NoTag(encodeItem->value.int32Value);
 				break;
 			}
-			case PBEncodeItemType_Fixed64:
+			case LSEncodeItemType_Fixed64:
 			{
 				if (encodeItem->hasTag) {
 					m_outputStream->writeRawVarint32(encodeItem->compiledTag);
@@ -362,7 +362,7 @@ PBArrayAddHelper::~PBArrayAddHelper()
 				m_outputStream->writeFixed64NoTag(encodeItem->value.int64Value);
 				break;
 			}
-			case PBEncodeItemType_SFixed32:
+			case LSEncodeItemType_SFixed32:
 			{
 				if (encodeItem->hasTag) {
 					m_outputStream->writeRawVarint32(encodeItem->compiledTag);
@@ -370,7 +370,7 @@ PBArrayAddHelper::~PBArrayAddHelper()
 				m_outputStream->writeSFixed32NoTag(encodeItem->value.int32Value);
 				break;
 			}
-			case PBEncodeItemType_SFixed64:
+			case LSEncodeItemType_SFixed64:
 			{
 				if (encodeItem->hasTag) {
 					m_outputStream->writeRawVarint32(encodeItem->compiledTag);
@@ -378,7 +378,7 @@ PBArrayAddHelper::~PBArrayAddHelper()
 				m_outputStream->writeSFixed64NoTag(encodeItem->value.int64Value);
 				break;
 			}
-			case PBEncodeItemType_Point:
+			case LSEncodeItemType_Point:
 			{
 				if (encodeItem->hasTag) {
 					m_outputStream->writeRawVarint32(encodeItem->compiledTag);
@@ -387,7 +387,7 @@ PBArrayAddHelper::~PBArrayAddHelper()
 				m_outputStream->writeFloatNoTag(encodeItem->value.pointValue.y);
 				break;
 			}
-			case PBEncodeItemType_Size:
+			case LSEncodeItemType_Size:
 			{
 				if (encodeItem->hasTag) {
 					m_outputStream->writeRawVarint32(encodeItem->compiledTag);
@@ -396,7 +396,7 @@ PBArrayAddHelper::~PBArrayAddHelper()
 				m_outputStream->writeFloatNoTag(encodeItem->value.sizeValue.height);
 				break;
 			}
-			case PBEncodeItemType_Rect:
+			case LSEncodeItemType_Rect:
 			{
 				if (encodeItem->hasTag) {
 					m_outputStream->writeRawVarint32(encodeItem->compiledTag);
@@ -407,7 +407,7 @@ PBArrayAddHelper::~PBArrayAddHelper()
 				m_outputStream->writeFloatNoTag(encodeItem->value.rectValue.size.height);
 				break;
 			}
-			case PBEncodeItemType_NSString:
+			case LSEncodeItemType_NSString:
 			{
 				if (encodeItem->hasTag) {
 					m_outputStream->writeRawVarint32(encodeItem->compiledTag);
@@ -418,7 +418,7 @@ PBArrayAddHelper::~PBArrayAddHelper()
 				}
 				break;
 			}
-			case PBEncodeItemType_NSData:
+			case LSEncodeItemType_NSData:
 			{
 				if (encodeItem->hasTag) {
 					m_outputStream->writeRawVarint32(encodeItem->compiledTag);
@@ -429,7 +429,7 @@ PBArrayAddHelper::~PBArrayAddHelper()
 				}
 				break;
 			}
-			case PBEncodeItemType_NSDate:
+			case LSEncodeItemType_NSDate:
 			{
 				if (encodeItem->hasTag) {
 					m_outputStream->writeRawVarint32(encodeItem->compiledTag);
@@ -438,7 +438,7 @@ PBArrayAddHelper::~PBArrayAddHelper()
 				m_outputStream->writeDoubleNoTag(oDate.timeIntervalSince1970);
 				break;
 			}
-			case PBEncodeItemType_NSNumber:
+			case LSEncodeItemType_NSNumber:
 			{
 				if (encodeItem->hasTag) {
 					m_outputStream->writeRawVarint32(encodeItem->compiledTag);
@@ -449,8 +449,8 @@ PBArrayAddHelper::~PBArrayAddHelper()
 				}
 				break;
 			}
-			case PBEncodeItemType_NSContainer:
-			case PBEncodeItemType_Object:
+			case LSEncodeItemType_NSContainer:
+			case LSEncodeItemType_Object:
 			{
 				if (encodeItem->hasTag) {
 					m_outputStream->writeRawVarint32(encodeItem->compiledTag);
@@ -458,12 +458,12 @@ PBArrayAddHelper::~PBArrayAddHelper()
 				m_outputStream->writeRawVarint32(encodeItem->valueSize);
 				break;
 			}
-			case PBEncodeItemType_NSContainer_UNPACKED:
+			case LSEncodeItemType_NSContainer_UNPACKED:
 			{
 				// unpacked container doesn't need size
 				break;
 			}
-			case PBEncodeItemType_None:
+			case LSEncodeItemType_None:
 			{
 				PBError(@"%d", encodeItem->type);
 				break;
@@ -473,129 +473,129 @@ PBArrayAddHelper::~PBArrayAddHelper()
 }
 
 // prepare size, value and tag
--(size_t) prepareCPropertyForEndcode:(PBCoderPropertyType*)oPropertyType withTarget:(id)obj {
-	m_encodeItems->push_back(PBEncodeItem());
+-(size_t) prepareCPropertyForEndcode:(LSCoderPropertyType*)oPropertyType withTarget:(id)obj {
+	m_encodeItems->push_back(LSEncodeItem());
 	size_t index = m_encodeItems->size() - 1;
-	PBEncodeItem* encodeItem = &m_encodeItems->back();
+	LSEncodeItem* encodeItem = &m_encodeItems->back();
 	encodeItem->hasTag = true;
 	encodeItem->compiledTag = PBWireFormatMakeTag(oPropertyType.m_index, PBWireFormatVarint);
 	
 	switch (oPropertyType.m_cType) {
-		case PBCoderCType_Bool:
+		case LSCoderCType_Bool:
 		{
-			encodeItem->type = PBEncodeItemType_Bool;
+			encodeItem->type = LSEncodeItemType_Bool;
 			encodeItem->value.boolValue = blockGet<bool>(obj, oPropertyType.m_blockGet);
 			encodeItem->compiledSize = computeBoolSize(oPropertyType.m_index, encodeItem->value.boolValue);
 			return index;
 		}
-		case PBCoderCType_Enum:
+		case LSCoderCType_Enum:
 		{
-			encodeItem->type = PBEncodeItemType_Enum;
+			encodeItem->type = LSEncodeItemType_Enum;
 			encodeItem->value.int32Value = blockGet<int32_t>(obj, oPropertyType.m_blockGet);
 			encodeItem->compiledSize = computeEnumSize(oPropertyType.m_index, encodeItem->value.int32Value);
 			return index;
 		}
-		case PBCoderCType_Int32:
+		case LSCoderCType_Int32:
 		{
-			encodeItem->type = PBEncodeItemType_Int32;
+			encodeItem->type = LSEncodeItemType_Int32;
 			encodeItem->value.int32Value = blockGet<int32_t>(obj, oPropertyType.m_blockGet);
 			encodeItem->compiledSize = computeInt32Size(oPropertyType.m_index, encodeItem->value.int32Value);
 			return index;
 		}
-		case PBCoderCType_Int64:
+		case LSCoderCType_Int64:
 		{
-			encodeItem->type = PBEncodeItemType_Int64;
+			encodeItem->type = LSEncodeItemType_Int64;
 			encodeItem->value.int64Value = blockGet<int64_t>(obj, oPropertyType.m_blockGet);
 			encodeItem->compiledSize = computeInt64Size(oPropertyType.m_index, encodeItem->value.int64Value);
 			return index;
 		}
-		case PBCoderCType_UInt32:
+		case LSCoderCType_UInt32:
 		{
-			encodeItem->type = PBEncodeItemType_UInt32;
+			encodeItem->type = LSEncodeItemType_UInt32;
 			encodeItem->value.uint32Value = blockGet<uint32_t>(obj, oPropertyType.m_blockGet);
 			encodeItem->compiledSize = computeUInt32Size(oPropertyType.m_index, encodeItem->value.uint32Value);
 			return index;
 		}
-		case PBCoderCType_UInt64:
+		case LSCoderCType_UInt64:
 		{
-			encodeItem->type = PBEncodeItemType_UInt64;
+			encodeItem->type = LSEncodeItemType_UInt64;
 			encodeItem->value.uint64Value = blockGet<uint64_t>(obj, oPropertyType.m_blockGet);
 			encodeItem->compiledSize = computeUInt64Size(oPropertyType.m_index, encodeItem->value.uint64Value);
 			return index;
 		}
-		case PBCoderCType_Float:
+		case LSCoderCType_Float:
 		{
-			encodeItem->type = PBEncodeItemType_Float;
+			encodeItem->type = LSEncodeItemType_Float;
 			encodeItem->compiledTag = PBWireFormatMakeTag(oPropertyType.m_index, PBWireFormatFixed32);
 			encodeItem->value.floatValue = blockGet<float>(obj, oPropertyType.m_blockGet);
 			encodeItem->compiledSize = computeFloatSize(oPropertyType.m_index, encodeItem->value.floatValue);
 			return index;
 		}
-		case PBCoderCType_Double:
+		case LSCoderCType_Double:
 		{
-			encodeItem->type = PBEncodeItemType_Double;
+			encodeItem->type = LSEncodeItemType_Double;
 			encodeItem->compiledTag = PBWireFormatMakeTag(oPropertyType.m_index, PBWireFormatFixed64);
 			encodeItem->value.doubleValue = blockGet<double>(obj, oPropertyType.m_blockGet);
 			encodeItem->compiledSize = computeDoubleSize(oPropertyType.m_index, encodeItem->value.doubleValue);
 			return index;
 		}
-		case PBCoderCType_Point:
+		case LSCoderCType_Point:
 		{
-			encodeItem->type = PBEncodeItemType_Point;
+			encodeItem->type = LSEncodeItemType_Point;
 			encodeItem->compiledTag = PBWireFormatMakeTag(oPropertyType.m_index, PBWireFormatFixed64);
 			encodeItem->value.pointValue = blockGet<CGPoint>(obj, oPropertyType.m_blockGet);
 			encodeItem->compiledSize = computeTagSize(oPropertyType.m_index) + computeFloatSizeNoTag(encodeItem->value.pointValue.x) + computeFloatSizeNoTag(encodeItem->value.pointValue.y);
 			return index;
 		}
-		case PBCoderCType_Size:
+		case LSCoderCType_Size:
 		{
-			encodeItem->type = PBEncodeItemType_Size;
+			encodeItem->type = LSEncodeItemType_Size;
 			encodeItem->compiledTag = PBWireFormatMakeTag(oPropertyType.m_index, PBWireFormatFixed64);
 			encodeItem->value.sizeValue = blockGet<CGSize>(obj, oPropertyType.m_blockGet);
 			encodeItem->compiledSize = computeTagSize(oPropertyType.m_index) + computeFloatSizeNoTag(encodeItem->value.sizeValue.width) + computeFloatSizeNoTag(encodeItem->value.sizeValue.height);
 			return index;
 		}
-		case PBCoderCType_Rect:
+		case LSCoderCType_Rect:
 		{
-			encodeItem->type = PBEncodeItemType_Rect;
+			encodeItem->type = LSEncodeItemType_Rect;
 			encodeItem->compiledTag = PBWireFormatMakeTag(oPropertyType.m_index, PBWireFormatFixed64);
 			encodeItem->value.rectValue = blockGet<CGRect>(obj, oPropertyType.m_blockGet);
 			encodeItem->compiledSize = computeTagSize(oPropertyType.m_index) + computeFloatSizeNoTag(encodeItem->value.rectValue.origin.x) + computeFloatSizeNoTag(encodeItem->value.rectValue.origin.y) + computeFloatSizeNoTag(encodeItem->value.rectValue.size.width) + computeFloatSizeNoTag(encodeItem->value.rectValue.size.height);
 			return index;
 		}
-		case PBCoderCType_Fixed32:
+		case LSCoderCType_Fixed32:
 		{
-			encodeItem->type = PBEncodeItemType_Fixed32;
+			encodeItem->type = LSEncodeItemType_Fixed32;
 			encodeItem->compiledTag = PBWireFormatMakeTag(oPropertyType.m_index, PBWireFormatFixed32);
 			encodeItem->value.int32Value = blockGet<int32_t>(obj, oPropertyType.m_blockGet);
 			encodeItem->compiledSize = computeFixed32Size(oPropertyType.m_index, encodeItem->value.int32Value);
 			return index;
 		}
-		case PBCoderCType_Fixed64:
+		case LSCoderCType_Fixed64:
 		{
-			encodeItem->type = PBEncodeItemType_Fixed64;
+			encodeItem->type = LSEncodeItemType_Fixed64;
 			encodeItem->compiledTag = PBWireFormatMakeTag(oPropertyType.m_index, PBWireFormatFixed64);
 			encodeItem->value.int64Value = blockGet<int64_t>(obj, oPropertyType.m_blockGet);
 			encodeItem->compiledSize = computeFixed64Size(oPropertyType.m_index, encodeItem->value.int64Value);
 			return index;
 		}
-		case PBCoderCType_SFixed32:
+		case LSCoderCType_SFixed32:
 		{
-			encodeItem->type = PBEncodeItemType_SFixed32;
+			encodeItem->type = LSEncodeItemType_SFixed32;
 			encodeItem->compiledTag = PBWireFormatMakeTag(oPropertyType.m_index, PBWireFormatFixed32);
 			encodeItem->value.int32Value = blockGet<int32_t>(obj, oPropertyType.m_blockGet);
 			encodeItem->compiledSize = computeSFixed32Size(oPropertyType.m_index, encodeItem->value.int32Value);
 			return index;
 		}
-		case PBCoderCType_SFixed64:
+		case LSCoderCType_SFixed64:
 		{
-			encodeItem->type = PBEncodeItemType_SFixed64;
+			encodeItem->type = LSEncodeItemType_SFixed64;
 			encodeItem->compiledTag = PBWireFormatMakeTag(oPropertyType.m_index, PBWireFormatFixed64);
 			encodeItem->value.int64Value = blockGet<int64_t>(obj, oPropertyType.m_blockGet);
 			encodeItem->compiledSize = computeSFixed64Size(oPropertyType.m_index, encodeItem->value.int64Value);
 			return index;
 		}
-		case PBCoderCType_None:
+		case LSCoderCType_None:
 		{
 			m_encodeItems->pop_back();
 			assert(0);
@@ -605,10 +605,10 @@ PBArrayAddHelper::~PBArrayAddHelper()
 	return m_encodeItems->size();
 }
 
--(size_t) prepareCValueForEndcode:(PBCoderPropertyCType)cType withValue:(NSNumber*)value withTag:(uint32_t)tag {
-	m_encodeItems->push_back(PBEncodeItem());
+-(size_t) prepareCValueForEndcode:(LSCoderPropertyCType)cType withValue:(NSNumber*)value withTag:(uint32_t)tag {
+	m_encodeItems->push_back(LSEncodeItem());
 	size_t index = m_encodeItems->size() - 1;
-	PBEncodeItem* encodeItem = &m_encodeItems->back();
+	LSEncodeItem* encodeItem = &m_encodeItems->back();
 	if (tag == 0) {
 		encodeItem->hasTag = false;
 	} else {
@@ -617,51 +617,51 @@ PBArrayAddHelper::~PBArrayAddHelper()
 	}
 	
 	switch (cType) {
-		case PBCoderCType_Bool:
+		case LSCoderCType_Bool:
 		{
-			encodeItem->type = PBEncodeItemType_Bool;
+			encodeItem->type = LSEncodeItemType_Bool;
 			encodeItem->value.boolValue = value.boolValue;
 			encodeItem->compiledSize = encodeItem->hasTag ? computeBoolSize(tag, encodeItem->value.boolValue): computeBoolSizeNoTag(encodeItem->value.boolValue);
 			return index;
 		}
-		case PBCoderCType_Enum:
+		case LSCoderCType_Enum:
 		{
-			encodeItem->type = PBEncodeItemType_Enum;
+			encodeItem->type = LSEncodeItemType_Enum;
 			encodeItem->value.int32Value = value.intValue;
 			encodeItem->compiledSize = encodeItem->hasTag ? computeEnumSize(tag, encodeItem->value.int32Value) : computeEnumSizeNoTag(encodeItem->value.int32Value);
 			return index;
 		}
-		case PBCoderCType_Int32:
+		case LSCoderCType_Int32:
 		{
-			encodeItem->type = PBEncodeItemType_Int32;
+			encodeItem->type = LSEncodeItemType_Int32;
 			encodeItem->value.int32Value = value.intValue;
 			encodeItem->compiledSize = encodeItem->hasTag ? computeInt32Size(tag, encodeItem->value.int32Value) : computeInt32SizeNoTag(encodeItem->value.int32Value);
 			return index;
 		}
-		case PBCoderCType_Int64:
+		case LSCoderCType_Int64:
 		{
-			encodeItem->type = PBEncodeItemType_Int64;
+			encodeItem->type = LSEncodeItemType_Int64;
 			encodeItem->value.int64Value = value.longLongValue;
 			encodeItem->compiledSize = encodeItem->hasTag ? computeInt64Size(tag, encodeItem->value.int64Value) : computeInt64SizeNoTag(encodeItem->value.int64Value);
 			return index;
 		}
-		case PBCoderCType_UInt32:
+		case LSCoderCType_UInt32:
 		{
-			encodeItem->type = PBEncodeItemType_UInt32;
+			encodeItem->type = LSEncodeItemType_UInt32;
 			encodeItem->value.uint32Value = value.unsignedIntValue;
 			encodeItem->compiledSize = encodeItem->hasTag ? computeUInt32Size(tag, encodeItem->value.uint32Value) : computeUInt32SizeNoTag(encodeItem->value.uint32Value);
 			return index;
 		}
-		case PBCoderCType_UInt64:
+		case LSCoderCType_UInt64:
 		{
-			encodeItem->type = PBEncodeItemType_UInt64;
+			encodeItem->type = LSEncodeItemType_UInt64;
 			encodeItem->value.uint64Value = value.unsignedLongLongValue;
 			encodeItem->compiledSize = encodeItem->hasTag ? computeUInt64Size(tag, encodeItem->value.uint64Value) : computeUInt64SizeNoTag(encodeItem->value.uint64Value);
 			return index;
 		}
-		case PBCoderCType_Float:
+		case LSCoderCType_Float:
 		{
-			encodeItem->type = PBEncodeItemType_Float;
+			encodeItem->type = LSEncodeItemType_Float;
 			if (encodeItem->hasTag) {
 				encodeItem->compiledTag = PBWireFormatMakeTag(tag, PBWireFormatFixed32);
 			}
@@ -669,9 +669,9 @@ PBArrayAddHelper::~PBArrayAddHelper()
 			encodeItem->compiledSize = encodeItem->hasTag ? computeFloatSize(tag, encodeItem->value.floatValue) : computeFloatSizeNoTag(encodeItem->value.floatValue);
 			return index;
 		}
-		case PBCoderCType_Double:
+		case LSCoderCType_Double:
 		{
-			encodeItem->type = PBEncodeItemType_Double;
+			encodeItem->type = LSEncodeItemType_Double;
 			if (encodeItem->hasTag) {
 				encodeItem->compiledTag = PBWireFormatMakeTag(tag, PBWireFormatFixed64);
 			}
@@ -679,9 +679,9 @@ PBArrayAddHelper::~PBArrayAddHelper()
 			encodeItem->compiledSize = encodeItem->hasTag ? computeDoubleSize(tag, encodeItem->value.doubleValue) : computeDoubleSizeNoTag(encodeItem->value.doubleValue);
 			return index;
 		}
-		case PBCoderCType_Fixed32:
+		case LSCoderCType_Fixed32:
 		{
-			encodeItem->type = PBEncodeItemType_Fixed32;
+			encodeItem->type = LSEncodeItemType_Fixed32;
 			if (encodeItem->hasTag) {
 				encodeItem->compiledTag = PBWireFormatMakeTag(tag, PBWireFormatFixed32);
 			}
@@ -689,9 +689,9 @@ PBArrayAddHelper::~PBArrayAddHelper()
 			encodeItem->compiledSize = encodeItem->hasTag ? computeFixed32Size(tag, encodeItem->value.int32Value) : computeFixed32SizeNoTag(encodeItem->value.int32Value);
 			return index;
 		}
-		case PBCoderCType_Fixed64:
+		case LSCoderCType_Fixed64:
 		{
-			encodeItem->type = PBEncodeItemType_Fixed64;
+			encodeItem->type = LSEncodeItemType_Fixed64;
 			if (encodeItem->hasTag) {
 				encodeItem->compiledTag = PBWireFormatMakeTag(tag, PBWireFormatFixed64);
 			}
@@ -699,9 +699,9 @@ PBArrayAddHelper::~PBArrayAddHelper()
 			encodeItem->compiledSize = encodeItem->hasTag ? computeFixed64Size(tag, encodeItem->value.int64Value) : computeFixed64SizeNoTag(encodeItem->value.int64Value);
 			return index;
 		}
-		case PBCoderCType_SFixed32:
+		case LSCoderCType_SFixed32:
 		{
-			encodeItem->type = PBEncodeItemType_SFixed32;
+			encodeItem->type = LSEncodeItemType_SFixed32;
 			if (encodeItem->hasTag) {
 				encodeItem->compiledTag = PBWireFormatMakeTag(tag, PBWireFormatFixed32);
 			}
@@ -709,9 +709,9 @@ PBArrayAddHelper::~PBArrayAddHelper()
 			encodeItem->compiledSize = encodeItem->hasTag ? computeSFixed32Size(tag, encodeItem->value.int32Value) : computeSFixed32SizeNoTag(encodeItem->value.int32Value);
 			return index;
 		}
-		case PBCoderCType_SFixed64:
+		case LSCoderCType_SFixed64:
 		{
-			encodeItem->type = PBEncodeItemType_SFixed64;
+			encodeItem->type = LSEncodeItemType_SFixed64;
 			if (encodeItem->hasTag) {
 				encodeItem->compiledTag = PBWireFormatMakeTag(tag, PBWireFormatFixed64);
 			}
@@ -719,10 +719,10 @@ PBArrayAddHelper::~PBArrayAddHelper()
 			encodeItem->compiledSize = encodeItem->hasTag ? computeSFixed64Size(tag, encodeItem->value.int64Value) : computeSFixed64SizeNoTag(encodeItem->value.int64Value);
 			return index;
 		}
-		case PBCoderCType_Point:
-		case PBCoderCType_Size:
-		case PBCoderCType_Rect:
-		case PBCoderCType_None:
+		case LSCoderCType_Point:
+		case LSCoderCType_Size:
+		case LSCoderCType_Rect:
+		case LSCoderCType_None:
 		{
 			m_encodeItems->pop_back();
 			assert(0);
@@ -734,15 +734,15 @@ PBArrayAddHelper::~PBArrayAddHelper()
 
 // prepare size and value, not tag
 // a basic object's tag is to be juded by caller, so no tag by now
--(size_t) prepareBasicObjectForEncode:(id<PBCoding>)obj withPropertyType:(PBCoderPropertyType*)oPropertyType {
-	m_encodeItems->push_back(PBEncodeItem());
-	PBEncodeItem* encodeItem = &(m_encodeItems->back());
+-(size_t) prepareBasicObjectForEncode:(id<LSCoding>)obj withPropertyType:(LSCoderPropertyType*)oPropertyType {
+	m_encodeItems->push_back(LSEncodeItem());
+	LSEncodeItem* encodeItem = &(m_encodeItems->back());
 	size_t index = m_encodeItems->size() - 1;
     
 	if ([obj isKindOfClass:[NSString class]])
 	{
 		NSString* str = (NSString*) obj;
-		encodeItem->type = PBEncodeItemType_NSString;
+		encodeItem->type = LSEncodeItemType_NSString;
 		size_t maxSize = MAX(1, [str maximumLengthOfBytesUsingEncoding:NSUTF8StringEncoding]);
 		if (m_formatBufferSize < maxSize)
 		{
@@ -762,7 +762,7 @@ PBArrayAddHelper::~PBArrayAddHelper()
 	else if ([obj isKindOfClass:[NSDate class]])
 	{
 		NSDate* oDate = (NSDate*)obj;
-		encodeItem->type = PBEncodeItemType_NSDate;
+		encodeItem->type = LSEncodeItemType_NSDate;
 		encodeItem->value.objectValue = (__bridge void*)oDate;
 		encodeItem->valueSize = computeDoubleSizeNoTag(oDate.timeIntervalSince1970);
 		encodeItem->compiledSize = encodeItem->valueSize;
@@ -771,25 +771,25 @@ PBArrayAddHelper::~PBArrayAddHelper()
 	else if ([obj isKindOfClass:[NSNumber class]])
 	{
 		NSNumber* number = (NSNumber*) obj;
-		encodeItem->type = PBEncodeItemType_NSNumber;
+		encodeItem->type = LSEncodeItemType_NSNumber;
         encodeItem->value.tmpObjectValue = (void*)CFBridgingRetain(number.stringValue);
 		encodeItem->valueSize = computeRawStringSize((__bridge NSString*)encodeItem->value.tmpObjectValue);
 	}
 	else if ([obj isKindOfClass:[NSData class]])
 	{
 		NSData* oData = (NSData*)obj;
-		encodeItem->type = PBEncodeItemType_NSData;
+		encodeItem->type = LSEncodeItemType_NSData;
 		encodeItem->value.objectValue = (__bridge void*)oData;
 		encodeItem->valueSize = static_cast<int32_t>(oData.length);
 	}
 	else if ([obj isKindOfClass:[NSArray class]] || [obj isKindOfClass:[NSSet class]])
 	{
-		encodeItem->type = PBEncodeItemType_NSContainer;
+		encodeItem->type = LSEncodeItemType_NSContainer;
 		encodeItem->value.objectValue = NULL;
         
 		for (id subObj in (NSArray*)obj) {
 			size_t itemIndex = 0;
-			if (oPropertyType.m_subCType != PBCoderCType_None) {
+			if (oPropertyType.m_subCType != LSCoderCType_None) {
 				// packed property has no tag
 				itemIndex = [self prepareCValueForEndcode:oPropertyType.m_subCType withValue:subObj withTag:0];
 			} else {
@@ -803,7 +803,7 @@ PBArrayAddHelper::~PBArrayAddHelper()
 	}
 	else if ([obj isKindOfClass:[NSDictionary class]])
 	{
-		encodeItem->type = PBEncodeItemType_NSContainer;
+		encodeItem->type = LSEncodeItemType_NSContainer;
 		encodeItem->value.objectValue = NULL;
 		
 		[(NSDictionary*)obj enumerateKeysAndObjectsUsingBlock:^(id key, id value, BOOL *stop) {
@@ -821,7 +821,7 @@ PBArrayAddHelper::~PBArrayAddHelper()
 			if (keyIndex < m_encodeItems->size())
 			{
 				size_t valueIndex = 0;
-				if (oPropertyType.m_subCType != PBCoderCType_None) {
+				if (oPropertyType.m_subCType != LSCoderCType_None) {
 					// packed property has no tag
 					valueIndex = [self prepareCValueForEndcode:oPropertyType.m_subCType withValue:value withTag:0];
 				} else {
@@ -849,24 +849,24 @@ PBArrayAddHelper::~PBArrayAddHelper()
 	return index;
 }
 
--(size_t) prepareUnPackedContainerForEncode:(id<PBCoding>)obj withPropertyIndex:(int32_t)propertyIndex withSubCType:(PBCoderPropertyCType)cType
+-(size_t) prepareUnPackedContainerForEncode:(id<LSCoding>)obj withPropertyIndex:(int32_t)propertyIndex withSubCType:(LSCoderPropertyCType)cType
 {
-	m_encodeItems->push_back(PBEncodeItem());
-	PBEncodeItem* encodeItem = &(m_encodeItems->back());
+	m_encodeItems->push_back(LSEncodeItem());
+	LSEncodeItem* encodeItem = &(m_encodeItems->back());
 	size_t index = m_encodeItems->size() - 1;
-	encodeItem->type = PBEncodeItemType_NSContainer_UNPACKED;
+	encodeItem->type = LSEncodeItemType_NSContainer_UNPACKED;
 	encodeItem->value.objectValue = NULL;
 	
 	for (id subObj in (NSArray*)obj) {
 		size_t itemIndex = 0;
-		if (cType != PBCoderCType_None) {
+		if (cType != LSCoderCType_None) {
 			itemIndex = [self prepareCValueForEndcode:cType withValue:subObj withTag:propertyIndex];
 		} else {
 			itemIndex = [self prepareObjectForEncode:subObj withPropertyType:nil];
 		}
 		if (itemIndex < m_encodeItems->size()) {
-			PBEncodeItem* subObjItem = &(*m_encodeItems)[itemIndex];
-			if (cType != PBCoderCType_None) {
+			LSEncodeItem* subObjItem = &(*m_encodeItems)[itemIndex];
+			if (cType != LSCoderCType_None) {
 				// add to my size
 				(*m_encodeItems)[index].valueSize += subObjItem->compiledSize;
 			} else {
@@ -888,17 +888,17 @@ PBArrayAddHelper::~PBArrayAddHelper()
 // prepare size and value, not tag
 // an object's tag is to be juded by caller, so no tag by now
 -(size_t) preparePBObjectForEncode:(id)obj withPropertyTable:(NSArray*)arrProperty {
-	m_encodeItems->push_back(PBEncodeItem());
-	PBEncodeItem* encodeItem = &(m_encodeItems->back());
-	encodeItem->type = PBEncodeItemType_Object;
+	m_encodeItems->push_back(LSEncodeItem());
+	LSEncodeItem* encodeItem = &(m_encodeItems->back());
+	encodeItem->type = LSEncodeItemType_Object;
 	size_t cur_index = m_encodeItems->size() - 1;	// encodeItem may be invalid
 	
 	if (arrProperty.count <= 0) {
 		return cur_index;
 	}
 	for (size_t index = 0, total = arrProperty.count; index < total; index++) {
-		PBCoderPropertyType* oPropertyType = [arrProperty objectAtIndex:index];
-		if (oPropertyType.m_cType == PBCoderCType_None) {
+		LSCoderPropertyType* oPropertyType = [arrProperty objectAtIndex:index];
+		if (oPropertyType.m_cType == LSCoderCType_None) {
 			// encode super
 			if (oPropertyType.m_isSuperPlaceHolder) {
 				IMP imp = class_getMethodImplementation(oPropertyType.m_cls, @selector(getValueTypeTable));
@@ -906,7 +906,7 @@ PBArrayAddHelper::~PBArrayAddHelper()
 				size_t itemIndex = [self preparePBObjectForEncode:obj withPropertyTable:arrSuperProperty];
 				if (itemIndex < m_encodeItems->size()) {
 					// a super has a tag
-					PBEncodeItem* oItem = &(*m_encodeItems)[itemIndex];
+					LSEncodeItem* oItem = &(*m_encodeItems)[itemIndex];
 					oItem->hasTag = true;
 					oItem->compiledTag = PBWireFormatMakeTag(oPropertyType.m_index, PBWireFormatLengthDelimited);
 					
@@ -922,7 +922,7 @@ PBArrayAddHelper::~PBArrayAddHelper()
 						size_t itemIndex = [self prepareUnPackedContainerForEncode:oPropObj withPropertyIndex:oPropertyType.m_index withSubCType:oPropertyType.m_subCType];
 						if (itemIndex < m_encodeItems->size()) {
 							// a unpacked container itself doesn't have a tag
-							PBEncodeItem* oItem = &(*m_encodeItems)[itemIndex];
+							LSEncodeItem* oItem = &(*m_encodeItems)[itemIndex];
 							oItem->hasTag = false;
 							
 							// add unpacked container size to my size
@@ -932,7 +932,7 @@ PBArrayAddHelper::~PBArrayAddHelper()
 						size_t itemIndex = [self prepareObjectForEncode:oPropObj withPropertyType:oPropertyType];
 						if (itemIndex < m_encodeItems->size()) {
 							// a property has a tag
-							PBEncodeItem* oItem = &(*m_encodeItems)[itemIndex];
+							LSEncodeItem* oItem = &(*m_encodeItems)[itemIndex];
 							oItem->hasTag = true;
 							oItem->compiledTag = PBWireFormatMakeTag(oPropertyType.m_index, PBWireFormatLengthDelimited);
 							
@@ -959,7 +959,7 @@ PBArrayAddHelper::~PBArrayAddHelper()
 
 // prepare size and value, not tag
 // an object's tag is to be juded by caller, so no tag by now
--(size_t) prepareObjectForEncode:(id)obj withPropertyType:(PBCoderPropertyType*)oPropertyType {
+-(size_t) prepareObjectForEncode:(id)obj withPropertyType:(LSCoderPropertyType*)oPropertyType {
 	if (!obj) {
 		return m_encodeItems->size();
 	}
@@ -981,21 +981,21 @@ PBArrayAddHelper::~PBArrayAddHelper()
 		return m_outputData;
 	}
     
-	m_encodeItems = new std::vector<PBEncodeItem>();
+	m_encodeItems = new std::vector<LSEncodeItem>();
 	size_t index = [self prepareObjectForEncode:m_obj withPropertyType:nil];
-	PBEncodeItem* oItem = (index < m_encodeItems->size()) ? &(*m_encodeItems)[index] : NULL;
+	LSEncodeItem* oItem = (index < m_encodeItems->size()) ? &(*m_encodeItems)[index] : NULL;
 	if (oItem && oItem->compiledSize > 0) {
-		if (!forceWriteSize && (oItem->type == PBEncodeItemType_Object)) {
+		if (!forceWriteSize && (oItem->type == LSEncodeItemType_Object)) {
             m_outputData = [NSMutableData dataWithLength:oItem->valueSize];
 		} else {
 			// non-protobuf object(NSString/NSArray, etc) need to to write SIZE as well as DATA,
 			// so compiledSize is used,
             m_outputData = [NSMutableData dataWithLength:oItem->compiledSize];
 		}
-		m_outputStream = new CodedOutputData(m_outputData);
+		m_outputStream = new LSCodedOutputData(m_outputData);
 
 		// force write value size, for append mode
-		if (forceWriteSize && (oItem->type == PBEncodeItemType_Object)) {
+		if (forceWriteSize && (oItem->type == LSEncodeItemType_Object)) {
 			m_outputStream->writeRawVarint32(oItem->valueSize);
 		}
 		[self writeRootObject];
@@ -1011,16 +1011,16 @@ PBArrayAddHelper::~PBArrayAddHelper()
 		return m_outputData;
 	}
 	
-	m_encodeItems = new std::vector<PBEncodeItem>();
+	m_encodeItems = new std::vector<LSEncodeItem>();
 	size_t index = [self preparePBObjectForEncode:m_obj withPropertyTable:arrProperty];
-	PBEncodeItem* oItem = (index < m_encodeItems->size()) ? &(*m_encodeItems)[index] : NULL;
+	LSEncodeItem* oItem = (index < m_encodeItems->size()) ? &(*m_encodeItems)[index] : NULL;
 	if (oItem && oItem->compiledSize > 0) {
-		if (oItem->type == PBEncodeItemType_Object) {
+		if (oItem->type == LSEncodeItemType_Object) {
 			m_outputData = [NSMutableData dataWithLength:oItem->valueSize];
 		} else {
 			m_outputData = [NSMutableData dataWithLength:oItem->compiledSize];
 		}
-		m_outputStream = new CodedOutputData(m_outputData);
+		m_outputStream = new LSCodedOutputData(m_outputData);
 		
 		[self writeRootObject];
 		
@@ -1030,10 +1030,10 @@ PBArrayAddHelper::~PBArrayAddHelper()
 	return nil;
 }
 
-+(NSData*) encodeDataWithObject:(id/*<PBCoding>*/)obj {
++(NSData*) encodeDataWithObject:(id)obj {
 	if (obj) {
 		@try {
-			PBCoder* oCoder = [[PBCoder alloc] initForWritingWithTarget:obj];
+			LSCoder* oCoder = [[LSCoder alloc] initForWritingWithTarget:obj];
             NSData* oData = [oCoder getEncodeDataWithForceWriteSize:false];
 			
 			return oData;
@@ -1045,10 +1045,10 @@ PBArrayAddHelper::~PBArrayAddHelper()
 	return nil;
 }
 
-+(NSData*) encodeDataWithSizeForObject:(id/*<PBCoding>*/)obj{
++(NSData*) encodeDataWithSizeForObject:(id)obj{
 	if (obj) {
 		@try {
-			PBCoder* oCoder = [[PBCoder alloc] initForWritingWithTarget:obj];
+			LSCoder* oCoder = [[LSCoder alloc] initForWritingWithTarget:obj];
             NSData* oData = [oCoder getEncodeDataWithForceWriteSize:true];
 			
 			return oData;
@@ -1060,13 +1060,13 @@ PBArrayAddHelper::~PBArrayAddHelper()
 	return nil;
 }
 
-+(bool) encodeObject:(id/*<PBCoding>*/)obj toFile:(NSString*)nsPath {
++(bool) encodeObject:(id)obj toFile:(NSString*)nsPath {
 	if (!obj || nsPath.length <= 0) {
 		return NO;
 	}
     
 	@try {
-		NSData* oData = [PBCoder encodeDataWithObject:obj];
+		NSData* oData = [LSCoder encodeDataWithObject:obj];
 		if (oData) {
 			return [oData writeToFile:nsPath atomically:YES];
 		}
@@ -1080,82 +1080,82 @@ PBArrayAddHelper::~PBArrayAddHelper()
 
 #pragma mark - decode
 
--(id/*<PBCoding>*/) decodeOneValueOfCType:(PBCoderPropertyCType)cType {
+-(id) decodeOneValueOfCType:(LSCoderPropertyCType)cType {
 	NSNumber* result = nil;
 	switch (cType) {
-		case PBCoderCType_Bool:
+		case LSCoderCType_Bool:
 		{
 			result = [NSNumber numberWithBool:m_inputStream->readBool()];
 			break;
 		}
-		case PBCoderCType_Enum:
+		case LSCoderCType_Enum:
 		{
 			result = [NSNumber numberWithInt:m_inputStream->readEnum()];
 			break;
 		}
-		case PBCoderCType_Int32:
+		case LSCoderCType_Int32:
 		{
 			result = [NSNumber numberWithInt:m_inputStream->readInt32()];
 			break;
 		}
-		case PBCoderCType_Int64:
+		case LSCoderCType_Int64:
 		{
 			result = [NSNumber numberWithLongLong:m_inputStream->readInt64()];
 			break;
 		}
-		case PBCoderCType_UInt32:
+		case LSCoderCType_UInt32:
 		{
 			result = [NSNumber numberWithUnsignedInt:m_inputStream->readUInt32()];
 			break;
 		}
-		case PBCoderCType_UInt64:
+		case LSCoderCType_UInt64:
 		{
 			result = [NSNumber numberWithUnsignedLongLong:m_inputStream->readUInt64()];
 			break;
 		}
-		case PBCoderCType_Float:
+		case LSCoderCType_Float:
 		{
 			result = [NSNumber numberWithFloat:m_inputStream->readFloat()];
 			break;
 		}
-		case PBCoderCType_Double:
+		case LSCoderCType_Double:
 		{
 			result = [NSNumber numberWithDouble:m_inputStream->readDouble()];
 			break;
 		}
-		case PBCoderCType_Fixed32:
+		case LSCoderCType_Fixed32:
 		{
 			result = [NSNumber numberWithInt:m_inputStream->readFixed32()];
 			break;
 		}
-		case PBCoderCType_Fixed64:
+		case LSCoderCType_Fixed64:
 		{
 			result = [NSNumber numberWithLongLong:m_inputStream->readFixed64()];
 			break;
 		}
-		case PBCoderCType_SFixed32:
+		case LSCoderCType_SFixed32:
 		{
 			result = [NSNumber numberWithInt:m_inputStream->readSFixed32()];
 			break;
 		}
-		case PBCoderCType_SFixed64:
+		case LSCoderCType_SFixed64:
 		{
 			result = [NSNumber numberWithLongLong:m_inputStream->readSFixed64()];
 			break;
 		}
-		case PBCoderCType_Point:
-		case PBCoderCType_Size:
-		case PBCoderCType_Rect:
-		case PBCoderCType_None:
+		case LSCoderCType_Point:
+		case LSCoderCType_Size:
+		case LSCoderCType_Rect:
+		case LSCoderCType_None:
 			PBError(@"not supported");
 			break;
 	}
 	return result;
 }
 
--(NSMutableArray*) decodeOneArrayOfValueClass:(Class)cls orValueCType:(PBCoderPropertyCType)cType ignoreSize:(bool)ignoreSize{
+-(NSMutableArray*) decodeOneArrayOfValueClass:(Class)cls orValueCType:(LSCoderPropertyCType)cType ignoreSize:(bool)ignoreSize{
 	m_isTopObject = NO;
-	if (cls == NULL && cType == PBCoderCType_None) {
+	if (cls == NULL && cType == LSCoderCType_None) {
 		return nil;
 	}
 	
@@ -1173,7 +1173,7 @@ PBArrayAddHelper::~PBArrayAddHelper()
 		   (!ignoreSize && m_inputStream->bytesUntilLimit() > 0))
 	{
 		id value = nil;
-		if (cType != PBCoderCType_None) {
+		if (cType != LSCoderCType_None) {
 			value = [self decodeOneValueOfCType:cType];
 		} else {
 			value = [self decodeOneObject:nil ofClass:cls];
@@ -1188,9 +1188,9 @@ PBArrayAddHelper::~PBArrayAddHelper()
 	return arr;
 }
 
--(NSMutableSet*) decodeOneSetOfValueClass:(Class)cls orValueCType:(PBCoderPropertyCType)cType ignoreSize:(bool)ignoreSize {
+-(NSMutableSet*) decodeOneSetOfValueClass:(Class)cls orValueCType:(LSCoderPropertyCType)cType ignoreSize:(bool)ignoreSize {
 	m_isTopObject = NO;
-	if (cls == NULL && cType == PBCoderCType_None) {
+	if (cls == NULL && cType == LSCoderCType_None) {
 		return nil;
 	}
 	
@@ -1208,7 +1208,7 @@ PBArrayAddHelper::~PBArrayAddHelper()
 		   (!ignoreSize && m_inputStream->bytesUntilLimit() > 0))
 	{
 		id value = nil;
-		if (cType != PBCoderCType_None) {
+		if (cType != LSCoderCType_None) {
 			value = [self decodeOneValueOfCType:cType];
 		} else {
 			value = [self decodeOneObject:nil ofClass:cls];
@@ -1222,9 +1222,9 @@ PBArrayAddHelper::~PBArrayAddHelper()
 	return set;
 }
 
--(NSMutableDictionary*) decodeOneDictionaryOfValueClass:(Class)cls orValueCType:(PBCoderPropertyCType)cType ignoreSize:(bool)ignoreSize {
+-(NSMutableDictionary*) decodeOneDictionaryOfValueClass:(Class)cls orValueCType:(LSCoderPropertyCType)cType ignoreSize:(bool)ignoreSize {
 	m_isTopObject = NO;
-	if (cls == NULL && cType == PBCoderCType_None) {
+	if (cls == NULL && cType == LSCoderCType_None) {
 		return nil;
 	}
 	
@@ -1244,7 +1244,7 @@ PBArrayAddHelper::~PBArrayAddHelper()
 		NSString* nsKey = m_inputStream->readString();
 		if (nsKey) {
 			id value = nil;
-			if (cType != PBCoderCType_None) {
+			if (cType != LSCoderCType_None) {
 				value = [self decodeOneValueOfCType:cType];
 			} else {
 				value = [self decodeOneObject:nil ofClass:cls];
@@ -1257,49 +1257,49 @@ PBArrayAddHelper::~PBArrayAddHelper()
 	return dic;
 }
 
--(void) decodeOne_C_Property:(PBCoderPropertyType*)oPropertyType ofObject:(id)obj {
+-(void) decodeOne_C_Property:(LSCoderPropertyType*)oPropertyType ofObject:(id)obj {
 	switch (oPropertyType.m_cType) {
-		case PBCoderCType_Bool:
+		case LSCoderCType_Bool:
 		{
 			blockSet<bool>(obj, oPropertyType.m_blockSet, m_inputStream->readBool());
 			break;
 		}
-		case PBCoderCType_Enum:
+		case LSCoderCType_Enum:
 		{
 			blockSet<int32_t>(obj, oPropertyType.m_blockSet, m_inputStream->readEnum());
 			break;
 		}
-		case PBCoderCType_Int32:
+		case LSCoderCType_Int32:
 		{
 			blockSet<int32_t>(obj, oPropertyType.m_blockSet, m_inputStream->readInt32());
 			break;
 		}
-		case PBCoderCType_Int64:
+		case LSCoderCType_Int64:
 		{
 			blockSet<int64_t>(obj, oPropertyType.m_blockSet, m_inputStream->readInt64());
 			break;
 		}
-		case PBCoderCType_UInt32:
+		case LSCoderCType_UInt32:
 		{
 			blockSet<uint32_t>(obj, oPropertyType.m_blockSet, m_inputStream->readUInt32());
 			break;
 		}
-		case PBCoderCType_UInt64:
+		case LSCoderCType_UInt64:
 		{
 			blockSet<uint64_t>(obj, oPropertyType.m_blockSet, m_inputStream->readUInt64());
 			break;
 		}
-		case PBCoderCType_Float:
+		case LSCoderCType_Float:
 		{
 			blockSet<float>(obj, oPropertyType.m_blockSet, m_inputStream->readFloat());
 			break;
 		}
-		case PBCoderCType_Double:
+		case LSCoderCType_Double:
 		{
 			blockSet<double>(obj, oPropertyType.m_blockSet, m_inputStream->readDouble());
 			break;
 		}
-		case PBCoderCType_Point:
+		case LSCoderCType_Point:
 		{
 			CGPoint point;
 			point.x = m_inputStream->readFloat();
@@ -1307,7 +1307,7 @@ PBArrayAddHelper::~PBArrayAddHelper()
 			blockSet<CGPoint>(obj, oPropertyType.m_blockSet, point);
 			break;
 		}
-		case PBCoderCType_Size:
+		case LSCoderCType_Size:
 		{
 			CGSize size;
 			size.width = m_inputStream->readFloat();
@@ -1315,7 +1315,7 @@ PBArrayAddHelper::~PBArrayAddHelper()
 			blockSet<CGSize>(obj, oPropertyType.m_blockSet, size);
 			break;
 		}
-		case PBCoderCType_Rect:
+		case LSCoderCType_Rect:
 		{
 			CGRect rect;
 			rect.origin.x = m_inputStream->readFloat();
@@ -1325,27 +1325,27 @@ PBArrayAddHelper::~PBArrayAddHelper()
 			blockSet<CGRect>(obj, oPropertyType.m_blockSet, rect);
 			break;
 		}
-		case PBCoderCType_Fixed32:
+		case LSCoderCType_Fixed32:
 		{
 			blockSet<int32_t>(obj, oPropertyType.m_blockSet, m_inputStream->readFixed32());
 			break;
 		}
-		case PBCoderCType_Fixed64:
+		case LSCoderCType_Fixed64:
 		{
 			blockSet<int64_t>(obj, oPropertyType.m_blockSet, m_inputStream->readFixed64());
 			break;
 		}
-		case PBCoderCType_SFixed32:
+		case LSCoderCType_SFixed32:
 		{
 			blockSet<int32_t>(obj, oPropertyType.m_blockSet, m_inputStream->readSFixed32());
 			break;
 		}
-		case PBCoderCType_SFixed64:
+		case LSCoderCType_SFixed64:
 		{
 			blockSet<int64_t>(obj, oPropertyType.m_blockSet, m_inputStream->readSFixed64());
 			break;
 		}
-		case PBCoderCType_None:
+		case LSCoderCType_None:
 		{
 			PBError(@"never happen");
 			break;
@@ -1353,9 +1353,9 @@ PBArrayAddHelper::~PBArrayAddHelper()
 	}
 }
 
--(void) decodeOneProperty:(PBCoderPropertyType*)oPropertyType ofObject:(id)target {
+-(void) decodeOneProperty:(LSCoderPropertyType*)oPropertyType ofObject:(id)target {
 	// objc objects
-	if (oPropertyType.m_cType == PBCoderCType_None)
+	if (oPropertyType.m_cType == LSCoderCType_None)
 	{
 		if (oPropertyType.m_cls == [NSString class])
 		{
@@ -1388,7 +1388,7 @@ PBArrayAddHelper::~PBArrayAddHelper()
 		{
 			if (oPropertyType.m_isContainerUnpacked) {
 				id value = nil;
-				if (oPropertyType.m_subCType != PBCoderCType_None) {
+				if (oPropertyType.m_subCType != LSCoderCType_None) {
 					value = [self decodeOneValueOfCType:oPropertyType.m_subCType];
 				} else {
 					value = [self decodeOneObject:nil ofClass:oPropertyType.m_subCls];
@@ -1410,7 +1410,7 @@ PBArrayAddHelper::~PBArrayAddHelper()
 		{
 			if (oPropertyType.m_isContainerUnpacked) {
 				id value = nil;
-				if (oPropertyType.m_subCType != PBCoderCType_None) {
+				if (oPropertyType.m_subCType != LSCoderCType_None) {
 					value = [self decodeOneValueOfCType:oPropertyType.m_subCType];
 				} else {
 					value = [self decodeOneObject:nil ofClass:oPropertyType.m_subCls];
@@ -1452,7 +1452,7 @@ PBArrayAddHelper::~PBArrayAddHelper()
 			std::map<size_t, size_t>::const_iterator itr = mapTagToIndex->find(field);
 			if (itr != mapTagToIndex->end())
 			{
-				PBCoderPropertyType* oPropertyType = [arrPropertyTypeWrap objectAtIndex:itr->second];
+				LSCoderPropertyType* oPropertyType = [arrPropertyTypeWrap objectAtIndex:itr->second];
                 
 				// decode super
 				if (oPropertyType.m_isSuperPlaceHolder) {
@@ -1482,7 +1482,7 @@ PBArrayAddHelper::~PBArrayAddHelper()
 	}
 }
 
--(id/*<PBCoding>*/) decodeOneObject:(id)obj ofClass:(Class)cls {
+-(id) decodeOneObject:(id)obj ofClass:(Class)cls {
 	if (!cls && !obj) {
 		return nil;
 	}
@@ -1491,9 +1491,9 @@ PBArrayAddHelper::~PBArrayAddHelper()
 	}
     
 	if (class_respondsToSelector(cls, @selector(getValueTypeTable))) {
-		id<PBCoding> pbObj = nil;
+		id<LSCoding> pbObj = nil;
 		if (obj) {
-			pbObj = (id<PBCoding>)obj;
+			pbObj = (id<LSCoding>)obj;
 		} else {
             pbObj = [[cls alloc] init];
 		}
@@ -1546,12 +1546,12 @@ PBArrayAddHelper::~PBArrayAddHelper()
 	return nil;
 }
 
--(id/*<PBCoding>*/) decodeOneObject:(id)obj withProperty:(NSArray*)arrPropertyTypeWrap andTagIndexMap:(const std::map<size_t, size_t>*)mapTagToIndex
+-(id) decodeOneObject:(id)obj withProperty:(NSArray*)arrPropertyTypeWrap andTagIndexMap:(const std::map<size_t, size_t>*)mapTagToIndex
 {
 	if (!obj) {
 		return nil;
 	}
-	id<PBCoding> pbObj = (id<PBCoding>)obj;
+	id<LSCoding> pbObj = (id<LSCoding>)obj;
 	
 	// a root object has no tag or size
 	if (m_isTopObject) {
@@ -1565,26 +1565,26 @@ PBArrayAddHelper::~PBArrayAddHelper()
 	return pbObj;
 }
 
-+(id/*<PBCoding>*/)	decodeObjectOfClass:(Class)cls fromFile:(NSString*)nsPath {
++(id)	decodeObjectOfClass:(Class)cls fromFile:(NSString*)nsPath {
 	if (nsPath.length <= 0) {
 		return nil;
 	}
     
 	NSData* oData = [NSData dataWithContentsOfFile:nsPath];
 	if (oData) {
-		return [PBCoder decodeObjectOfClass:cls fromData:oData];
+		return [LSCoder decodeObjectOfClass:cls fromData:oData];
 	}
 	return nil;
 }
 
-+(id/*<PBCoding>*/)	decodeObjectOfClass:(Class)cls fromData:(NSData*)oData {
++(id)	decodeObjectOfClass:(Class)cls fromData:(NSData*)oData {
 	if (!cls || oData.length <= 0) {
 		return nil;
 	}
     
 	id obj = nil;
 	@try {
-		PBCoder* oCoder = [[PBCoder alloc] initForReadingWithData:oData];
+		LSCoder* oCoder = [[LSCoder alloc] initForReadingWithData:oData];
 		obj = [oCoder decodeOneObject:nil ofClass:cls];
 	} @catch(NSException *exception) {
 		PBError(@"%@", exception);
@@ -1598,7 +1598,7 @@ PBArrayAddHelper::~PBArrayAddHelper()
 	}
 	NSData* oData = [NSData dataWithContentsOfFile:nsPath];
 	if (oData) {
-		return [PBCoder decodeObject:obj fromData:oData];
+		return [LSCoder decodeObject:obj fromData:oData];
 	}
 	return false;
 }
@@ -1608,7 +1608,7 @@ PBArrayAddHelper::~PBArrayAddHelper()
 		return false;
 	}
 	@try {
-		PBCoder* oCoder = [[PBCoder alloc] initForReadingWithData:oData];
+		LSCoder* oCoder = [[LSCoder alloc] initForReadingWithData:oData];
 		[oCoder decodeOneObject:obj ofClass:getClassOfClusterInstance(obj)];
 		return true;
 	} @catch(NSException *exception) {
@@ -1617,28 +1617,28 @@ PBArrayAddHelper::~PBArrayAddHelper()
 	return false;
 }
 
-+(id/*<PBCoding>*/)	decodeContainerOfClass:(Class)cls withValueClass:(Class)valueClass fromFile:(NSString*)nsPath {
++(id)	decodeContainerOfClass:(Class)cls withValueClass:(Class)valueClass fromFile:(NSString*)nsPath {
 	NSData* oData = [NSData dataWithContentsOfFile:nsPath];
 	if (oData) {
-		return [PBCoder decodeContainerOfClass:cls withValueClass:valueClass fromData:oData];
+		return [LSCoder decodeContainerOfClass:cls withValueClass:valueClass fromData:oData];
 	}
 	return nil;
 }
 
-+(id/*<PBCoding>*/)	decodeContainerOfClass:(Class)cls withValueClass:(Class)valueClass fromData:(NSData*)oData {
++(id)	decodeContainerOfClass:(Class)cls withValueClass:(Class)valueClass fromData:(NSData*)oData {
 	if (!cls || !valueClass || oData.length <= 0) {
 		return nil;
 	}
     
 	id obj = nil;
 	@try {
-		PBCoder* oCoder = [[PBCoder alloc] initForReadingWithData:oData];
+		LSCoder* oCoder = [[LSCoder alloc] initForReadingWithData:oData];
 		if (cls == [NSArray class] || cls == [NSMutableArray class]) {
-			obj = [oCoder decodeOneArrayOfValueClass:valueClass orValueCType:PBCoderCType_None ignoreSize:true];
+			obj = [oCoder decodeOneArrayOfValueClass:valueClass orValueCType:LSCoderCType_None ignoreSize:true];
 		} else if (cls == [NSSet class] || cls == [NSMutableSet class]) {
-			obj = [oCoder decodeOneSetOfValueClass:valueClass orValueCType:PBCoderCType_None ignoreSize:true];
+			obj = [oCoder decodeOneSetOfValueClass:valueClass orValueCType:LSCoderCType_None ignoreSize:true];
 		} else if (cls == [NSDictionary class] || cls == [NSMutableDictionary class]) {
-			obj = [oCoder decodeOneDictionaryOfValueClass:valueClass orValueCType:PBCoderCType_None ignoreSize:true];
+			obj = [oCoder decodeOneDictionaryOfValueClass:valueClass orValueCType:LSCoderCType_None ignoreSize:true];
 		} else {
 			PBError(@"%@ not recognized as container", NSStringFromClass(cls));
 		}
@@ -1674,46 +1674,46 @@ PBArrayAddHelper::~PBArrayAddHelper()
 	if (obj == nil || nsPath.length <= 0) {
 		return false;
 	}
-	if ([PBCoder getFiLeSize:nsPath] <= 0) {
-		return [PBCoder encodeObject:[NSArray arrayWithObject:obj] toFile:nsPath];
+	if ([LSCoder getFiLeSize:nsPath] <= 0) {
+		return [LSCoder encodeObject:[NSArray arrayWithObject:obj] toFile:nsPath];
 	} else {
-		NSData* oData = [PBCoder encodeDataWithSizeForObject:obj];
+		NSData* oData = [LSCoder encodeDataWithSizeForObject:obj];
 		if (oData.length <= 0) {
 			return false;
 		}
-		return [PBCoder appendData:oData toPath:nsPath];
+		return [LSCoder appendData:oData toPath:nsPath];
 	}
 }
 
 +(bool) appendOneSetValue:(id)obj toFile:(NSString*)nsPath {
-	return [PBCoder appendOneArrayValue:obj toFile:nsPath];
+	return [LSCoder appendOneArrayValue:obj toFile:nsPath];
 }
 
 +(bool) appendOneDictionaryValue:(id)obj forKey:(NSString*)nsKey toFile:(NSString*)nsPath {
 	if (obj == nil || nsPath.length <= 0 || nsKey.length <= 0) {
 		return false;
 	}
-	return [PBCoder appendOneArrayValue:nsKey toFile:nsPath] && [PBCoder appendOneArrayValue:obj toFile:nsPath];
+	return [LSCoder appendOneArrayValue:nsKey toFile:nsPath] && [LSCoder appendOneArrayValue:obj toFile:nsPath];
 }
 
 +(bool) appendArray:(NSArray*)oArray toFile:(NSString*)nsPath {
 	if (oArray.count <= 0 || nsPath.length <= 0) {
 		return false;
 	}
-	NSData* oData = [PBCoder encodeDataWithObject:oArray];
+	NSData* oData = [LSCoder encodeDataWithObject:oArray];
     
-	if ([PBCoder getFiLeSize:nsPath] <= 0) {
+	if ([LSCoder getFiLeSize:nsPath] <= 0) {
 		return [oData writeToFile:nsPath atomically:YES];
 	} else {
 		// don't write size of the Array
-		CodedInputData input(oData);
+		LSCodedInputData input(oData);
 		int32_t valueSize = input.readRawVarint32();
 		int32_t sizeOfValueSize = computeRawVarint32Size(valueSize);
 		if (oData.length == valueSize + sizeOfValueSize) {
 			int8_t* bytes = (int8_t*)[oData bytes];
 			NSData* oValueData = [NSData dataWithBytesNoCopy:bytes+sizeOfValueSize length:valueSize freeWhenDone:NO];
 			
-			return [PBCoder appendData:oValueData toPath:nsPath];
+			return [LSCoder appendData:oValueData toPath:nsPath];
 		}
 	}
 	
@@ -1724,14 +1724,14 @@ PBArrayAddHelper::~PBArrayAddHelper()
 	if (oSet.count <= 0| nsPath.length <= 0) {
 		return false;
 	}
-	return [PBCoder appendArray:(NSArray*)oSet toFile:nsPath];
+	return [LSCoder appendArray:(NSArray*)oSet toFile:nsPath];
 }
 
 +(bool) appendDictionary:(NSDictionary*)oDictionary toFile:(NSString*)nsPath {
 	if (oDictionary.count <= 0 || nsPath.length <= 0) {
 		return false;
 	}
-	return [PBCoder appendArray:(NSArray*)oDictionary toFile:nsPath];
+	return [LSCoder appendArray:(NSArray*)oDictionary toFile:nsPath];
 }
 
 +(bool) appendOneArrayValue:(id)obj toData:(NSMutableData*)oData {
@@ -1741,9 +1741,9 @@ PBArrayAddHelper::~PBArrayAddHelper()
 
 	NSData* oNewData = nil;
 	if (oData.length <= 0) {
-		oNewData = [PBCoder encodeDataWithObject:[NSArray arrayWithObject:obj]];
+		oNewData = [LSCoder encodeDataWithObject:[NSArray arrayWithObject:obj]];
 	} else {
-		oNewData = [PBCoder encodeDataWithSizeForObject:obj];
+		oNewData = [LSCoder encodeDataWithSizeForObject:obj];
 	}
 	if (oNewData) {
 		[oData appendData:oNewData];
@@ -1753,28 +1753,28 @@ PBArrayAddHelper::~PBArrayAddHelper()
 }
 
 +(bool) appendOneSetValue:(id)obj toData:(NSMutableData*)oData {
-	return [PBCoder appendOneArrayValue:obj toData:oData];
+	return [LSCoder appendOneArrayValue:obj toData:oData];
 }
 
 +(bool) appendOneDictionaryValue:(id)obj forKey:(NSString*)nsKey toData:(NSMutableData*)oData {
 	if (obj == nil || nsKey.length <= 0 || oData == nil) {
 		return false;
 	}
-	return [PBCoder appendOneArrayValue:nsKey toData:oData] && [PBCoder appendOneArrayValue:obj toData:oData];
+	return [LSCoder appendOneArrayValue:nsKey toData:oData] && [LSCoder appendOneArrayValue:obj toData:oData];
 }
 
 +(bool) appendArray:(NSArray*)oArray toData:(NSMutableData*)oOut {
 	if (oArray.count <= 0 || oOut == nil) {
 		return false;
 	}
-	NSData* oData = [PBCoder encodeDataWithObject:oArray];
+	NSData* oData = [LSCoder encodeDataWithObject:oArray];
     
 	if (oData.length <= 0) {
 		[oOut appendData:oData];
 		return true;
 	} else {
 		// don't write size of the Array
-		CodedInputData input(oData);
+		LSCodedInputData input(oData);
 		int32_t valueSize = input.readRawVarint32();
 		int32_t sizeOfValueSize = computeRawVarint32Size(valueSize);
 		if (oData.length == valueSize + sizeOfValueSize) {
@@ -1791,14 +1791,14 @@ PBArrayAddHelper::~PBArrayAddHelper()
 	if (oSet.count <= 0 || oData == nil) {
 		return false;
 	}
-	return [PBCoder appendArray:(NSArray*)oSet toData:oData];
+	return [LSCoder appendArray:(NSArray*)oSet toData:oData];
 }
 
 +(bool) appendDictionary:(NSDictionary*)oDictionary toData:(NSMutableData*)oData {
 	if (oDictionary.count <= 0 || oData == nil) {
 		return false;
 	}
-	return [PBCoder appendArray:(NSArray*)oDictionary toData:oData];
+	return [LSCoder appendArray:(NSArray*)oDictionary toData:oData];
 }
 
 @end
@@ -1806,14 +1806,14 @@ PBArrayAddHelper::~PBArrayAddHelper()
 
 // encode/decode using alternative property table
 
-@implementation PBCoder (PropertyTable)
+@implementation LSCoder (PropertyTable)
 
 +(NSData*) encodeObject:(id)obj withPropertyTable:(NSArray*)arrProperty {
 	if (obj && arrProperty.count > 0) {
         NSData* oData = nil;
-        PBCoder* oCoder = nil;
+        LSCoder* oCoder = nil;
 		@try {
-			oCoder = [[PBCoder alloc] initForWritingWithTarget:obj];
+			oCoder = [[LSCoder alloc] initForWritingWithTarget:obj];
 			oData = [oCoder getEncodeDataWithPropertyTable:arrProperty];
 		} @catch(NSException *exception) {
 			PBError(@"%@", exception);
@@ -1826,13 +1826,13 @@ PBArrayAddHelper::~PBArrayAddHelper()
 	return nil;
 }
 
-+(bool) encodeObject:(id/*<PBCoding>*/)obj withPropertyTable:(NSArray*)arrProperty toFile:(NSString*)nsPath {
++(bool) encodeObject:(id)obj withPropertyTable:(NSArray*)arrProperty toFile:(NSString*)nsPath {
 	if (!obj || nsPath.length <= 0 || arrProperty.count <= 0) {
 		return NO;
 	}
 	
 	@try {
-		NSData* oData = [PBCoder encodeObject:obj withPropertyTable:arrProperty];
+		NSData* oData = [LSCoder encodeObject:obj withPropertyTable:arrProperty];
 		if (oData) {
             return [oData writeToFile:nsPath atomically:YES];
 		}
@@ -1850,9 +1850,9 @@ PBArrayAddHelper::~PBArrayAddHelper()
 	}
     
     bool ret = false;
-    PBCoder* oCoder = nil;
+    LSCoder* oCoder = nil;
 	@try {
-		oCoder = [[PBCoder alloc] initForReadingWithData:oData];
+		oCoder = [[LSCoder alloc] initForReadingWithData:oData];
 		[oCoder decodeOneObject:obj withProperty:arrPropertyTypeWrap andTagIndexMap:mapTagToIndex];
 		ret = true;
 	} @catch(NSException *exception) {

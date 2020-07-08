@@ -8,10 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-NS_ASSUME_NONNULL_BEGIN
-
-@interface LevelStorage : NSObject
-+ (LevelStorage*)shareStorage;
-@end
-
-NS_ASSUME_NONNULL_END
+#import <LevelStorage/LevelMacro.h>
+#import <LevelStorage/LevelKV.h>
+#import <LevelStorage/LevelDB.h>
+#import <LevelStorage/LevelKV+JSON.h>

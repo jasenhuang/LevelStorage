@@ -31,8 +31,8 @@ extern NSString * const kLevelDBChangeTypeDelete;
 extern NSString * const kLevelDBChangeValue;
 extern NSString * const kLevelDBChangeKey;
 
-typedef NSData * (^LevelDBEncoderBlock) (LevelDBKey * key, id object);
-typedef id       (^LevelDBDecoderBlock) (LevelDBKey * key, id data);
+typedef NSData * _Nonnull (^LevelDBEncoderBlock) (LevelDBKey * key, id object);
+typedef id _Nonnull       (^LevelDBDecoderBlock) (LevelDBKey * key, id data);
 
 #ifdef __cplusplus
 extern "C" {
@@ -164,6 +164,7 @@ extern "C" {
  */
 - (void) removeObjectsForKeys:(NSArray *)keyArray;
 
+- (void) enumerateKeysUsingBlock:(void (NS_NOESCAPE ^)(NSString *key, BOOL *stop))block;
 
 @end
 

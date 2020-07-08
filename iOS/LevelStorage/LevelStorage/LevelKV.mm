@@ -8,10 +8,17 @@
 
 #import "LevelKV.h"
 #import "LevelDB.h"
-#import "PBCoder.h"
-#import "PBUtility.h"
-#import "CodedInputData.h"
-#import "CodedOutputData.h"
+#import "LSCoder.h"
+#import "LSUtility.h"
+#import "LSCodedInputData.h"
+#import "LSCodedOutputData.h"
+
+NSString* const kLevelDBErrorDomain = @"com.tencent.weread.leveldb";
+
+static LevelDBErrorFunction LDBErrorFunction;
+void LevelDBSetErrorFunction(LevelDBErrorFunction errorFunction) {
+    LDBErrorFunction = errorFunction;
+}
 
 @interface LevelKV()
 @property(nonatomic, readwrite) LevelDB* db;
@@ -41,6 +48,17 @@ static NSMutableDictionary* _instances;
         }
         if (_kv) {
             [_instances setObject:_kv forKey:ns];
+        }else{
+            NSError* error =
+            [NSError errorWithDomain:kLevelDBErrorDomain
+                                code:-1
+                            userInfo:@{
+                                @"namespace":ns,
+                                @"msg":@"Database Corruption"
+                            }];
+            if (LDBErrorFunction){
+                LDBErrorFunction(ns, _kv, error);
+            }
         }
         return _kv;
     }
@@ -62,7 +80,7 @@ static NSMutableDictionary* _instances;
         _db = [LevelDB databaseWithNameSpace:ns directory:directory];
         _db.encoder = ^NSData *(LevelDBKey * _Nonnull key, id  _Nonnull object) {
             if (![object isKindOfClass:[NSData class]]){
-                NSLog(@"encode object error");
+                NSLog(@"%@", @"encode object error");
                 return nil;
             }
             return object;
@@ -72,6 +90,11 @@ static NSMutableDictionary* _instances;
         };
         _cache = [[NSCache alloc] init];
         _cache.totalCostLimit = 50 * 1024 * 1024;
+        
+        if (!_db){
+            NSLog(@"%@", @"Problem creating LevelKV");
+            return nil;
+        }
     }
     return self;
 }
@@ -87,8 +110,8 @@ static NSMutableDictionary* _instances;
 #pragma mark - Setters
 - (BOOL)setObject:(id<LevelCoding>)obj forKey:(NSString*)key {
     if (!key.length || _db.closed) return false;
+    [_cache setObject:obj forKey:key];
     NSData* raw = [obj serialize];
-    [_cache setObject:obj forKey:key cost:raw.length];
     return [self setData:raw forKey:key];
 }
 
@@ -97,11 +120,11 @@ static NSMutableDictionary* _instances;
     if (!key.length || _db.closed) return false;\
     size_t size = compute##Name##SizeNoTag(value);\
     NSMutableData* data = [NSMutableData dataWithLength:size];\
-    CodedOutputData output(data);\
+    LSCodedOutputData output(data);\
     output.write##Name##NoTag(value);\
     /*double begin = CACurrentMediaTime();*/\
     BOOL ret = [_db setObject:data forKey:key];\
-    /*NSLog(@"%@", @((CACurrentMediaTime() - begin) * 1000.0));*/\
+    /*KVLog_LevelDBStatis(LR_SetTime, (CACurrentMediaTime() - begin) * 1000.0);*/\
     return ret;\
 }
 
@@ -123,6 +146,12 @@ SETTER(String, NSString*)
 
 SETTER(Data, NSData*)
 
+- (BOOL)setRawData:(NSData *)rawData forKey:(NSString *)key {
+    if (!key.length || _db.closed) return NO;
+    BOOL ret = [_db setObject:rawData forKey:key];
+    return ret;
+}
+
 #pragma mark - Getters
 - (id)getObjectOfClass:(Class)cls forKey:(NSString*)key {
     id obj = [_cache objectForKey:key];
@@ -131,7 +160,7 @@ SETTER(Data, NSData*)
         if (raw){
             obj = [[cls alloc] init];
             [obj deserialize:raw];
-            [_cache setObject:obj forKey:key cost:raw.length];
+            [_cache setObject:obj forKey:key];
         }
     }
     return obj;
@@ -144,9 +173,9 @@ SETTER(Data, NSData*)
     NSData* data = [_db objectForKey:key];\
     if (data.length > 0) {\
         @try {\
-            CodedInputData input(data);\
+            LSCodedInputData input(data);\
             Type obj = input.read##Name();\
-            /*NSLog(@"%@", @((CACurrentMediaTime() - begin) * 1000.0);*/\
+            /*KVLog_LevelDBStatis(LR_GetTime, (CACurrentMediaTime() - begin) * 1000.0);*/\
             return obj;\
         } @catch(NSException *exception) {\
             NSLog(@"%@", exception);\
@@ -186,6 +215,12 @@ GETTER_DEFAULT(String, NSString*, nil)
 GETTER(Data, NSData*)
 GETTER_DEFAULT(Data, NSData*, nil)
 
+- (NSData *)getRawDataForKey:(NSString *)key {
+    if (!key.length || _db.closed) return nil;
+    NSData * rawData = [_db objectForKey:key];
+    return rawData;
+}
+
 #pragma mark - Removers
 - (void)removeObjectForKey:(NSString*)key {
     if (!key.length || _db.closed) return ;
@@ -200,6 +235,44 @@ GETTER_DEFAULT(Data, NSData*, nil)
         [_cache removeObjectForKey:key];
     }];
     [_db removeObjectsForKeys:keys];
+}
+
+- (void)enumerateKeysUsingBlock:(void (NS_NOESCAPE ^)(NSString *key, BOOL *stop))block {
+    if (!block || _db.closed) return;
+    [_db enumerateKeysUsingBlock:block];
+}
+
+#pragma mark - Checker
+
+- (BOOL)existsValueForKey:(NSString *)key {
+    return !![_db objectForKey:key];
+}
+
+#pragma mark - Export
+
+- (NSDictionary *)exportToDictionaryWithKyes:(NSArray <NSString *>*)keys {
+    NSMutableString *pattern = [NSMutableString string];
+    [keys enumerateObjectsUsingBlock:^(NSString * _Nonnull key, NSUInteger idx, BOOL * _Nonnull stop) {
+        key = [key stringByReplacingOccurrencesOfString:@"*" withString:@".*"];
+        NSString *prefix = pattern.length > 0 ? @"|" : @"";
+        [pattern appendFormat:@"%@\\b%@\\b", prefix, key];
+    }];
+    
+    NSMutableDictionary *exportedDict = [NSMutableDictionary dictionary];
+    [self enumerateKeysUsingBlock:^(NSString * _Nonnull key, BOOL * _Nonnull stop) {
+        BOOL isExportedKey = [key rangeOfString:pattern options:NSRegularExpressionSearch | NSCaseInsensitiveSearch].location != NSNotFound;
+          if (isExportedKey) {
+              NSData *data = [self getRawDataForKey:key];
+              exportedDict[key] = data;
+          }
+    }];
+    return exportedDict.copy;
+}
+
+- (void)importFromDictionary:(NSDictionary *)dict {
+    [dict enumerateKeysAndObjectsUsingBlock:^(id  _Nonnull key, id  _Nonnull data, BOOL * _Nonnull stop) {
+        [self setRawData:data forKey:key];
+    }];
 }
 
 @end

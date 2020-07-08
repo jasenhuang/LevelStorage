@@ -16,10 +16,10 @@
     
     NSError *error;
     NSData *JSONData = [NSJSONSerialization dataWithJSONObject:JSON options:0 error:&error];
-    if (error) {
-        return NO;
-    }
-    [self.cache setObject:JSON forKey:key];
+    
+    if (error) return NO;
+
+    [self.cache setObject:JSON forKey:key cost:JSONData.length];
     return [self setData:JSONData forKey:key];
 }
 
@@ -30,7 +30,7 @@
         NSData *JSONData = [self getDataForKey:key];
         if (JSONData) {
             JSON = [NSJSONSerialization JSONObjectWithData:JSONData options:0 error:nil];
-            [self.cache setObject:JSON forKey:key];
+            [self.cache setObject:JSON forKey:key cost:JSONData.length];
         }
     }
     return JSON;
