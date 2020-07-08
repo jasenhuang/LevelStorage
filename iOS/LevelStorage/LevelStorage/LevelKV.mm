@@ -13,13 +13,6 @@
 #import "LSCodedInputData.h"
 #import "LSCodedOutputData.h"
 
-NSString* const kLevelDBErrorDomain = @"com.tencent.weread.leveldb";
-
-static LevelDBErrorFunction LDBErrorFunction;
-void LevelDBSetErrorFunction(LevelDBErrorFunction errorFunction) {
-    LDBErrorFunction = errorFunction;
-}
-
 @interface LevelKV()
 @property(nonatomic, readwrite) LevelDB* db;
 @property(nonatomic, readwrite) NSString* name;
@@ -48,17 +41,6 @@ static NSMutableDictionary* _instances;
         }
         if (_kv) {
             [_instances setObject:_kv forKey:ns];
-        }else{
-            NSError* error =
-            [NSError errorWithDomain:kLevelDBErrorDomain
-                                code:-1
-                            userInfo:@{
-                                @"namespace":ns,
-                                @"msg":@"Database Corruption"
-                            }];
-            if (LDBErrorFunction){
-                LDBErrorFunction(ns, _kv, error);
-            }
         }
         return _kv;
     }
@@ -92,7 +74,7 @@ static NSMutableDictionary* _instances;
         _cache.totalCostLimit = 50 * 1024 * 1024;
         
         if (!_db){
-            NSLog(@"%@", @"Problem creating LevelKV");
+            NSLog(@"%@", @"Problem creating LevelDB");
             return nil;
         }
     }
@@ -124,7 +106,7 @@ static NSMutableDictionary* _instances;
     output.write##Name##NoTag(value);\
     /*double begin = CACurrentMediaTime();*/\
     BOOL ret = [_db setObject:data forKey:key];\
-    /*KVLog_LevelDBStatis(LR_SetTime, (CACurrentMediaTime() - begin) * 1000.0);*/\
+    /*NSLog(@"%@", @((CACurrentMediaTime() - begin) * 1000.0));*/\
     return ret;\
 }
 
@@ -175,7 +157,7 @@ SETTER(Data, NSData*)
         @try {\
             LSCodedInputData input(data);\
             Type obj = input.read##Name();\
-            /*KVLog_LevelDBStatis(LR_GetTime, (CACurrentMediaTime() - begin) * 1000.0);*/\
+            /*NSLog(@"%@", @((CACurrentMediaTime() - begin) * 1000.0));*/\
             return obj;\
         } @catch(NSException *exception) {\
             NSLog(@"%@", exception);\

@@ -22,6 +22,12 @@ NSString * const kLevelDBChangeTypePut      = @"put";
 NSString * const kLevelDBChangeTypeDelete   = @"del";
 NSString * const kLevelDBChangeValue        = @"value";
 NSString * const kLevelDBChangeKey          = @"key";
+NSString * const kLevelDBErrorDomain        = @"com.tencent.levelstorage";
+
+static LevelDBErrorFunction LDBErrorFunction;
+void LevelDBSetErrorFunction(LevelDBErrorFunction errorFunction) {
+    LDBErrorFunction = errorFunction;
+}
 
 LevelDBOptions MakeLevelDBOptions() {
     return (LevelDBOptions) {true, true, false, false, true, 4, 50 * 1048576};
@@ -157,11 +163,30 @@ static NSMutableDictionary* _instances;
         leveldb::Status status = leveldb::DB::Open(options, [_path UTF8String], &_db);
         
         if(!status.ok()) {
-            NSLog(@"Problem creating LevelDB database: %s", status.ToString().c_str());
+            NSString* errmsg =
+            [NSString stringWithFormat:@"Problem creating LevelDB database: %s",
+             status.ToString().c_str()];
+            
+            [self onLDBErrorFunction:LevelDBOpenError msg:errmsg];
             return nil;
         }
     }
     return self;
+}
+
+#pragma mark - error handling
+- (void)onLDBErrorFunction:(LevelDBErrorCode)code msg:(NSString*)msg {
+    NSLog(@"%@", msg);
+    NSError* error =
+    [NSError errorWithDomain:kLevelDBErrorDomain
+                        code:code
+                    userInfo:@{
+                        @"namespace":_name,
+                        @"msg":msg
+                    }];
+    if (LDBErrorFunction){
+        LDBErrorFunction(_name, error);
+    }
 }
 
 #pragma mark - operation
@@ -227,7 +252,11 @@ static NSMutableDictionary* _instances;
     leveldb::Status status = _db->Put(_writeOptions, k, v);
     
     if(!status.ok()) {
-        NSLog(@"Problem storing key/value pair in database: %s", status.ToString().c_str());
+        NSString* errmsg =
+        [NSString stringWithFormat:@"Problem storing key/value pair in database: %s",
+         status.ToString().c_str()];
+        
+        [self onLDBErrorFunction:LevelDBSetError msg:errmsg];
         return false;
     }
     return true;
@@ -254,7 +283,11 @@ static NSMutableDictionary* _instances;
     
     if(!status.ok()) {
         if(!status.IsNotFound()){
-            NSLog(@"Problem retrieving value for key '%@' from database: %s", key, status.ToString().c_str());
+            NSString* errmsg =
+            [NSString stringWithFormat:@"Problem retrieving value for key '%@' from database: %s",
+             key, status.ToString().c_str()];
+            
+            [self onLDBErrorFunction:LevelDBGetError msg:errmsg];
         }
         return nil;
     }
@@ -278,7 +311,11 @@ static NSMutableDictionary* _instances;
         if (status.IsNotFound())
             return false;
         else {
-            NSLog(@"Problem retrieving value for key '%@' from database: %s", key, status.ToString().c_str());
+            NSString* errmsg =
+            [NSString stringWithFormat:@"Problem retrieving value for key '%@' from database: %s",
+             key, status.ToString().c_str()];
+            
+            [self onLDBErrorFunction:LevelDBGetError msg:errmsg];
             return false;
         }
     } else
@@ -294,7 +331,11 @@ static NSMutableDictionary* _instances;
     leveldb::Status status = _db->Delete(_writeOptions, k);
     
     if(!status.ok()) {
-        NSLog(@"Problem deleting key/value pair in database: %s", status.ToString().c_str());
+        NSString* errmsg =
+        [NSString stringWithFormat:@"Problem deleting key/value pair in database: %s",
+         status.ToString().c_str()];
+        
+        [self onLDBErrorFunction:LevelDBDeleteError msg:errmsg];
     }
 }
 

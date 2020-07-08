@@ -7,25 +7,12 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "LevelMacro.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-#if defined(__cplusplus)
-#define LDB_EXTERN extern "C" __attribute__((visibility("default")))
-#define LDB_EXTERN_C_BEGIN extern "C" {
-#define LDB_EXTERN_C_END }
-#else
-#define LDB_EXTERN extern __attribute__((visibility("default")))
-#define LDB_EXTERN_C_BEGIN
-#define LDB_EXTERN_C_END
-#endif
-
 @class LevelDB;
 @class LevelKV;
-
-typedef void (^LevelDBErrorFunction)(NSString* name, LevelKV* kv, NSError* error);
-
-LDB_EXTERN void LevelDBSetErrorFunction(LevelDBErrorFunction errorFunction);
 
 @protocol LevelCoding
 

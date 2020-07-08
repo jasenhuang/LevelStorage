@@ -7,6 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "LevelMacro.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -20,30 +21,36 @@ typedef struct LevelDBOptions {
     size_t cacheSize;                           // 50m
 } LevelDBOptions;
 
+typedef enum {
+    LevelDBSuccess          = 0,
+    LevelDBOpenError        = -1,
+    LevelDBSetError         = -2,
+    LevelDBGetError         = -3,
+    LevelDBDeleteError      = -4,
+} LevelDBErrorCode;
+
 typedef struct {
     const char * data;
     NSUInteger   length;
 } LevelDBKey;
 
-extern NSString * const kLevelDBChangeType;
-extern NSString * const kLevelDBChangeTypePut;
-extern NSString * const kLevelDBChangeTypeDelete;
-extern NSString * const kLevelDBChangeValue;
-extern NSString * const kLevelDBChangeKey;
+typedef void (^LevelDBErrorFunction)(NSString* name, NSError* _Nullable error);
+
+LDB_EXTERN NSString * const kLevelDBChangeType;
+LDB_EXTERN NSString * const kLevelDBChangeTypePut;
+LDB_EXTERN NSString * const kLevelDBChangeTypeDelete;
+LDB_EXTERN NSString * const kLevelDBChangeValue;
+LDB_EXTERN NSString * const kLevelDBChangeKey;
+LDB_EXTERN NSString * const kLevelDBErrorDomain;
+LDB_EXTERN void LevelDBSetErrorFunction(LevelDBErrorFunction errorFunction);
+
+
+LDB_EXTERN_C_BEGIN
 
 typedef NSData * _Nonnull (^LevelDBEncoderBlock) (LevelDBKey * key, id object);
 typedef id _Nonnull       (^LevelDBDecoderBlock) (LevelDBKey * key, id data);
-
-#ifdef __cplusplus
-extern "C" {
-#endif
     
-    NSString * NSStringFromLevelDBKey(LevelDBKey * key);
-    NSData   * NSDataFromLevelDBKey  (LevelDBKey * key);
-    
-#ifdef __cplusplus
-}
-#endif
+LDB_EXTERN_C_END
 
 @interface LevelDB : NSObject
 /**
