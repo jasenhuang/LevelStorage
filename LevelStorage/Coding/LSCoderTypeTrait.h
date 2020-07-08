@@ -10,8 +10,8 @@
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
-#include <type_traits>
-#include "LSCoder.h"
+#import <type_traits>
+#import "LSCoder.h"
 
 enum LSCoderPropertyCType {
 	LSCoderCType_None,
