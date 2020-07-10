@@ -96,8 +96,10 @@ NS_ASSUME_NONNULL_BEGIN
 - (double)getDoubleForKey:(NSString*)key defaultValue:(double)defaultValue;
 
 - (NSString*)getStringForKey:(NSString*)key;
+- (NSString*)getStringForKey:(NSString*)key defaultValue:(NSString*_Nullable)defaultValue;
 
 - (NSData*)getDataForKey:(NSString*)key;
+- (NSData*)getDataForKey:(NSString*)key defaultValue:(NSString*_Nullable)defaultValue;
 
 #pragma mark - Removers
 
