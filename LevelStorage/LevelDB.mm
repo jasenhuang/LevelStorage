@@ -17,11 +17,6 @@
 #import "LSCodedInputData.h"
 #import "LSCodedOutputData.h"
 
-NSString * const kLevelDBChangeType         = @"changeType";
-NSString * const kLevelDBChangeTypePut      = @"put";
-NSString * const kLevelDBChangeTypeDelete   = @"del";
-NSString * const kLevelDBChangeValue        = @"value";
-NSString * const kLevelDBChangeKey          = @"key";
 NSString * const kLevelDBErrorDomain        = @"com.tencent.levelstorage";
 
 static LevelDBErrorFunction LDBErrorFunction;

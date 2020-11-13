@@ -1,0 +1,16 @@
+PODS:
+  - leveldb-library (1.20)
+
+DEPENDENCIES:
+  - leveldb-library (= 1.20)
+
+SPEC REPOS:
+  trunk:
+    - leveldb-library
+
+SPEC CHECKSUMS:
+  leveldb-library: 08cba283675b7ed2d99629a4bc5fd052cd2bb6a5
+
+PODFILE CHECKSUM: c1256c0d81ef10ebc5bf500866dcea4fbc4dad26
+
+COCOAPODS: 1.9.3
