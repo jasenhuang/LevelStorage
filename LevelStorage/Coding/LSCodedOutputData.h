@@ -1,10 +1,11 @@
 //
 //  LSCodedOutputData.h
-//  LSCoder
+//  WeRead
 //
-//  Created by Ling Guo on 4/17/14.
-//  Copyright (c 2014 Tencent. All rights reserved.
+//  Created by jasenhuang on 2018/11/8.
+//  Copyright © 2018 tencent. All rights reserved.
 //
+
 #import <Foundation/Foundation.h>
 
 #pragma once

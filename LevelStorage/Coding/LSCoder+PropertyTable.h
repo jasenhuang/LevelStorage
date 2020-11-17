@@ -1,9 +1,9 @@
 //
 //  LSCoder+PropertyTable.h
-//  WeChatForMac
+//  WeRead
 //
-//  Created by Ling Guo on 1/3/14.
-//  Copyright (c) 2014 Tencet. All rights reserved.
+//  Created by jasenhuang on 2018/11/8.
+//  Copyright © 2018 tencent. All rights reserved.
 //
 
 #import "LSCoder.h"

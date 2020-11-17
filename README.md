@@ -4,11 +4,12 @@ LevelDB Wrapper with simple api
 ### Feature
 1. PBCoding Serialization
 2. Common Type Key-Value API
-3. DBError Error Function LevelDBSetErrorFunction
+3. DBError Function LevelDBSetErrorFunction
 
 ### Usage
 1. CocoaPods Embbed
-`pod 'LevelStorage', '1.0.1'`
+`pod 'LevelStorage'
+
 2. Project Config
 ```
 // config error function

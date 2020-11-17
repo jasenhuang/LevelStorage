@@ -1,9 +1,9 @@
 //
 //  LSCoderTypeTrait.h
-//  MMCommon
+//  WeRead
 //
-//  Created by Ling Guo on 7/2/15.
-//  Copyright (c) 2015 WXG. All rights reserved.
+//  Created by jasenhuang on 2018/11/8.
+//  Copyright © 2018 tencent. All rights reserved.
 //
 
 #pragma once
