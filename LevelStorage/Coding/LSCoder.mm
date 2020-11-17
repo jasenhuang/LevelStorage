@@ -2,7 +2,8 @@
 //  LSCoder.mm
 //  LSCoder
 //
-//  Copyright (c) 2013 Guo Ling. All rights reserved.
+//  Created by jasenhuang on 2018/11/8.
+//  Copyright © 2018 tencent. All rights reserved.
 //
 
 #include <sys/stat.h>
