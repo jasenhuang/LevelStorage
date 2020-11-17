@@ -198,23 +198,6 @@ static NSMutableDictionary* _instances;
     return _db == NULL;
 }
 
-#pragma mark - configuration
-- (void) setSync:(BOOL)sync {
-    _writeOptions.sync = sync;
-}
-
-- (BOOL) sync {
-    return _writeOptions.sync;
-}
-
-- (void) setUseCache:(BOOL)useCache {
-    _readOptions.fill_cache = useCache;
-}
-
-- (BOOL) useCache {
-    return _readOptions.fill_cache;
-}
-
 #pragma mark - serilization
 - (LevelDBEncoderBlock)encoder {
     if (!_encoder){

@@ -45,31 +45,12 @@ typedef NSData * _Nonnull (^LevelDBEncoderBlock) (LevelDBKey * key, id object);
 typedef id _Nonnull       (^LevelDBDecoderBlock) (LevelDBKey * key, id data);
     
 LDB_EXTERN_C_END
-
 @interface LevelDB : NSObject
-/**
- 
- */
-@property (nonatomic) BOOL sync;
 
-/**
- 
- */
-@property (nonatomic) BOOL useCache;
+@property (readonly) BOOL closed; // whether levelDB is closed
 
-/**
- 
- */
-@property (readonly) BOOL closed;
-
-/**
- 
- */
 @property (nonatomic, copy) LevelDBEncoderBlock encoder;
 
-/**
- 
- */
 @property (nonatomic, copy) LevelDBDecoderBlock decoder;
 
 /**
@@ -96,63 +77,30 @@ LDB_EXTERN_C_END
                           options:(LevelDBOptions)opts;
 
 
-/**
- 
- */
+#pragma mark - Operations
 - (void) close;
 
 #pragma mark - Setters
 
-/**
-
- */
 - (BOOL) setObject:(id)value forKey:(id)key;
-
-/**
-
- */
 - (BOOL) setObject:(id)value forKeyedSubscript:(id)key;
 
-
-/**
- 
- */
 - (BOOL) addEntriesFromDictionary:(NSDictionary *)dictionary;
 
 #pragma mark - get operation function
 
-/**
- 
- */
 - (id) objectForKey:(id)key;
-
-/**
-
- */
 - (id) objectForKeyedSubscript:(id)key;
 
-/**
-
- */
 - (BOOL) objectExistsForKey:(id)key;
 
 #pragma mark - remove operation function
 
-/**
-
- */
 - (void) removeObjectForKey:(id)key;
-
-/**
-
- */
 - (void) removeObjectsForKeys:(NSArray *)keyArray;
 
 #pragma mark - enumerate operation function
 
-/*
-    
- */
 - (void) enumerateKeysUsingBlock:(void (NS_NOESCAPE ^)(NSString *key, BOOL *stop))block;
 
 @end

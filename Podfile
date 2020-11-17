@@ -4,7 +4,7 @@ inhibit_all_warnings!
 
 target 'LevelStorage' do 
     inherit! :search_paths
-    pod 'leveldb-library', '1.20'
+    pod 'leveldb-library'
 end
 
 
