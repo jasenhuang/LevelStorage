@@ -1,14 +1,13 @@
 Pod::Spec.new do |s|
     s.name         = "LevelStorage"
-    s.version      = "1.0.2"
+    s.version      = "1.0.3"
     s.summary      = "storage"
     s.homepage     = 'https://github.com/jasenhuang'
     s.license      = { :type => 'MIT' }
     s.author       = { 'jasenhuang' => 'jasenhuang@rdgz.org' }
     s.platform     = :ios, "8.0"
     s.ios.deployment_target = "8.0"
-    # s.source       = { :git => "http://git.code.oa.com/WeRead/LevelStorage.git" }
-    s.source       = { :git => "https://github.com/jasenhuang/LevelStorage.git" }
+    s.source       = { :git => "https://github.com/jasenhuang/LevelStorage.git", :tag => '1.0.3' }
     s.source_files  = "LevelStorage/*.{h,m,mm}", 
                       "LevelStorage/Coding/*.{h,m,mm}"
     s.public_header_files = "LevelStorage/LevelStorage.h",
